@@ -46,3 +46,27 @@ class Tree(object):
             self.max_depth = depth
         
         return node_indice
+
+    def calculate_feature_importances(self):
+        importances = np.zeros(self.num_features)
+
+        if (self.node_count == 0):
+            return None
+        
+        # loop all nodes
+        for indice in self.node_count:
+            # because leaf node did not have any children 
+            # so we only need to test one of the children
+            if self.nodes[indice].left_child:
+                importances[self.nodes[indice].feature_indice] += self.nodes[indice].improvement
+        
+        # Normalization
+        norm_coeff = 0.0
+        for i in range(self.num_features):
+            norm_coeff += importances[i]
+
+        if norm_coeff > 0.0:
+            for i in range(self.num_features):
+                importances[i] = importances[i] / norm_coeff
+        
+        return importances
