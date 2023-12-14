@@ -1,6 +1,6 @@
 import numpy as np
 
-from .node import Node
+from ._node import Node
 
 class Tree(object):
     def __init__(self, num_outputs, num_classes, num_features):
