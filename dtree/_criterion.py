@@ -1,7 +1,11 @@
 import numpy as np
 
 class Gini(object):
-    def __init__(self, num_outputs, num_classes, num_samples, class_weight):
+    def __init__(self, 
+                 num_outputs, 
+                 num_classes, 
+                 num_samples, 
+                 class_weight):
         self.num_outputs = num_outputs
         self.num_classes = num_classes
         self.num_samples = num_samples
@@ -25,4 +29,21 @@ class Gini(object):
     def _compute_impurity(self, histogram):
         sum_count = 0
         sum_count_squared = 0
+
+        for c in histogram:
+            sum_count += histogram[c]
+            sum_count_squared += histogram[c] * histogram[c]
         
+        impurity = (1.0 - sum_count_squared / (sum_count*sum_count)) if (sum_count > 0.0) else 0.0
+        return impurity
+    
+
+    def _compute_node_impurity(self):
+        self.node_impurity = np.zeros(self.num_outputs)
+        for o in range(self.num_outputs):
+            self.node_impurity[o] = self._compute_impurity(self.node_weighted_histogram[o])
+    
+
+    def get_node_impurity(self):
+        return np.sum(self.node_impurity) / self.num_outputs
+    
