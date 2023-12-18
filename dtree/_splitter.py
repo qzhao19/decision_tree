@@ -1,5 +1,7 @@
 import numpy as np
 
+PRECISION = 1e-7
+
 class FeatureSplitter(object):
     def __init__(self, 
                  criterion, 
@@ -7,7 +9,8 @@ class FeatureSplitter(object):
                  num_features, 
                  num_outputs, 
                  num_classes,
-                 num_rand_thresholds, 
+                 max_num_features,
+                 max_num_thresholds, 
                  class_weight):
         
         self.criterion = criterion
@@ -15,7 +18,8 @@ class FeatureSplitter(object):
         self.num_features = num_features
         self.num_outputs = num_outputs
         self.num_classes = num_classes
-        self.num_rand_thresholds = num_rand_thresholds
+        self.max_num_features = max_num_features
+        self.max_num_thresholds = max_num_thresholds
         self.class_weight = class_weight
 
         self.samples = np.zeros((num_samples))
@@ -61,5 +65,25 @@ class FeatureSplitter(object):
         if missing_value_indice == num_samples:
             return 
         
+        if missing_value_indice > 0:
+            print("NO IMPLEMENTATION")
+
+        # Split based on threshold
+        f_max = f_min = f_x[0]
+        for i in range(missing_value_indice+1, num_samples):
+            if f_x[i] > f_max:
+                f_max = f_x[i]
+            elif f_x[i] < f_min:
+                f_min = f_x[i]
         
+
+        if f_min + PRECISION < f_max:
+
+            if missing_value_indice == 0:
+                self.criterion._init_threshold_histogram()
+            elif missing_value_indice > 0:
+                print("NO IMPLEMENTATION")
+            
+        
+                
 
