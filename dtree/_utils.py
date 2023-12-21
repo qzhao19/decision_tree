@@ -11,4 +11,4 @@ def sort(x, y, start, end, reverse=True):
     x[:] = [z[0] for z in x_y]
     y[:] = [z[1] for z in x_y]
 
-    return x, y
+    return np.array(x), np.array(y)
