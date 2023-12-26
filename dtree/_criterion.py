@@ -11,6 +11,8 @@ class Gini(object):
         self.num_samples = num_samples
         self.class_weight = class_weight
 
+        self.node_position_threshold = 0
+
     def _compute_node_histogram(self, y, samples, start, end):
         
         self.node_weighted_histogram = np.zeros((self.num_outputs, self.num_classes))
@@ -60,6 +62,22 @@ class Gini(object):
             self.node_weighted_num_samples_threshold_right[o] = self.node_weighted_num_samples[o]
 
         self.node_position_threshold = 0
+
+
+    def update_threshold_histograms(self, y, samples, curr_position):
+        for o in range(self.num_outputs):
+            histogram = np.zeros(self.num_classes)
+
+            # Calculate class histogram for samples[pos:new_pos]
+            for i in range(self.node_position_threshold, curr_position):
+                histogram[y[samples[i] * self.num_outputs + o]] += 1
+            
+            weighted_count = 0.0
+            for c in range(self.num_classes):
+                weighted_count = self.class_weight[o * self.num_classes_max + c] * histogram[c]
+                self.node_weighted_histogram[o][c] = weighted_count
+                self.node_weighted_n_samples[o] += weighted_count
+
 
 
     def get_node_impurity(self):
