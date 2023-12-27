@@ -24,7 +24,7 @@ class Gini(object):
 
             for c in range(self.num_classes):
                 weighted_count = self.class_weight[o * self.num_classes + c] * histogram[c]
-                self.node_weighted_histogram[o][c] = weighted_count
+                self.node_weighted_histogram[o][c] =     weighted_count
                 self.node_weighted_num_samples[o] += weighted_count
 
     

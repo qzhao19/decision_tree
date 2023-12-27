@@ -1,4 +1,7 @@
+import copy
 import numpy as np
+
+from ._utils import sort
 
 PRECISION = 1e-7
 
@@ -84,6 +87,9 @@ class FeatureSplitter(object):
             elif missing_value_indice > 0:
                 print("NO IMPLEMENTATION")
             
-        
-                
+            # Loop: all thresholds
+            f_x, samples = sort(f_x, samples, missing_value_indice, num_samples)
 
+            # Find threshold with maximum impurity improvement
+            
+            
