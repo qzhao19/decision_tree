@@ -10,7 +10,6 @@ class FeatureSplitter(object):
                  criterion, 
                  num_samples, 
                  num_features, 
-                 num_outputs, 
                  num_classes,
                  max_num_features,
                  max_num_thresholds, 
@@ -19,21 +18,22 @@ class FeatureSplitter(object):
         self.criterion = criterion
         self.num_samples = num_samples
         self.num_features = num_features
-        self.num_outputs = num_outputs
         self.num_classes = num_classes
         self.max_num_features = max_num_features
         self.max_num_thresholds = max_num_thresholds
         self.class_weight = class_weight
 
-        self.samples = np.zeros((num_samples))
+        self.samples = np.arange(0, num_samples)
 
-    # Initialize node and calculate weighted histograms for all outputs and impurity for the node.
     def init_node(self, y, start, end):
+        """Initialize node and calculate weighted histograms 
+        for all outputs and impurity for the node.
+        """
         self.start = start
         self.end = end
 
-        self.criterion._compute_node_histogram(y, self.samples, self.start, self.end)
-        self.criterion._compute_node_impurity()
+        self.criterion.compute_node_histogram(y, self.samples, self.start, self.end)
+        self.criterion.compute_node_impurity()
 
 
     def _best_split_feature(self, 
@@ -69,10 +69,10 @@ class FeatureSplitter(object):
             return 
         
         if missing_value_indice > 0:
-            print("NO IMPLEMENTATION")
+            print("NO YET IMPLEMENT")
 
         # Split based on threshold
-        f_max = f_min = f_x[0]
+        f_max = f_min = f_x[missing_value_indice]
         for i in range(missing_value_indice+1, num_samples):
             if f_x[i] > f_max:
                 f_max = f_x[i]
@@ -83,9 +83,9 @@ class FeatureSplitter(object):
         if f_min + PRECISION < f_max:
 
             if missing_value_indice == 0:
-                self.criterion._init_threshold_histogram()
+                self.criterion.init_threshold_histogram()
             elif missing_value_indice > 0:
-                print("NO IMPLEMENTATION")
+                print("NO YET IMPLEMENT")
             
             # Loop: all thresholds
             f_x, samples = sort(f_x, samples, missing_value_indice, num_samples)
