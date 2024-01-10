@@ -49,47 +49,71 @@ class FeatureSplitter(object):
         # has been checked by impurity stop criteria in build()
         # moving on we can assume at least 2 samples
 
-        # Copy f_X=X[samples[start:end],f] training data X for the current node.
+        # Copy X_feat_i=X[samples[start:end],f] training data X for the current node.
         num_samples = self.end - self.start
-        f_x = np.zeros(num_samples)
+        X_feat = np.zeros(num_samples)
         for i in range(num_samples):
-            f_x[i] = X[samples[i] * self.num_features + feature_indice]
+            X_feat[i] = X[samples[i] * self.num_features + feature_indice]
 
         # Detect samples with missing values and 
         # move them to the beginning of the samples vector
-        missing_value_indice = 0
+        missing_indice = 0
         for i in range(num_samples):
-            if np.isnan(f_x[i]):
-                f_x[i], f_x[missing_value_indice] = f_x[missing_value_indice], f_x[i]
-                samples[i], samples[missing_value_indice] = f_x[missing_value_indice], f_x[i]
-                missing_value_indice += 1
+            if np.isnan(X_feat[i]):
+                X_feat[i], X_feat[missing_indice] = X_feat[missing_indice], X_feat[i]
+                samples[i], samples[missing_indice] = X_feat[missing_indice], X_feat[i]
+                missing_indice += 1
         
         # Can not split feature when all values are NA
-        if missing_value_indice == num_samples:
+        if missing_indice == num_samples:
             return 
         
-        if missing_value_indice > 0:
+        if missing_indice > 0:
             print("NO YET IMPLEMENT")
 
         # Split based on threshold
-        f_max = f_min = f_x[missing_value_indice]
-        for i in range(missing_value_indice+1, num_samples):
-            if f_x[i] > f_max:
-                f_max = f_x[i]
-            elif f_x[i] < f_min:
-                f_min = f_x[i]
+        feat_max = feat_min = X_feat[missing_indice]
+        for i in range(missing_indice+1, num_samples):
+            if X_feat[i] > feat_max:
+                feat_max = X_feat[i]
+            elif X_feat[i] < feat_min:
+                feat_min = X_feat[i]
         
 
-        if f_min + PRECISION < f_max:
+        if feat_min + PRECISION < feat_max:
 
-            if missing_value_indice == 0:
+            if missing_indice == 0:
                 self.criterion.init_threshold_histogram()
-            elif missing_value_indice > 0:
+            elif missing_indice > 0:
                 print("NO YET IMPLEMENT")
             
             # Loop: all thresholds
-            f_x, samples = sort(f_x, samples, missing_value_indice, num_samples)
+            X_feat, samples = sort(X_feat, samples, missing_indice, num_samples)
 
             # Find threshold with maximum impurity improvement
+            # Initialize position of last and next potential split to number of missing 
             
+            prev_indice = missing_indice, next_indice = missing_indice
+            max_improvement = 0.0
+            max_threshold = 0.0
+            max_indice = missing_indice
+
+            while next_indice < num_samples:
+
+                # 
+                if X_feat[next_indice] + PRECISION >= X_feat[num_samples - 1]:
+                    break
+                # Skip constant Xf values
+                while (next_indice + 1 < num_samples) and (X_feat[next_indice] + PRECISION >= X_feat[next_indice + 1]):
+                    next_indice += 1
+                
+                next_indice += 1
+
+                # Update class histograms for all outputs for using a threshold on values
+                # from current indice p to the new position np (correspond to thresholds)
+                self.criterion.update_threshold_histograms(y, samples, next_indice)
+                
+
+
+
             
