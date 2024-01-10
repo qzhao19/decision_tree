@@ -38,7 +38,7 @@ class Gini(Criterion):
         # Calculate class histogram
         # 1d array to hold the class histogram
         for i in range(start, end):
-            histogram[y[i]] += 1
+            histogram[y[samples[i]]] += 1
 
         for c in range(self.num_classes):
             weighted_count = self.class_weight[c] * histogram[c]
@@ -84,4 +84,21 @@ class Gini(Criterion):
         self.node_position_threshold = 0
 
 
-    
+    def update_threshold_histograms(self, y, samples, new_position):
+        histogram = np.zeros(self.num_classes)
+
+        for i in range(self.node_position_threshold, new_position):
+            histogram[y[samples[i]]] += 1
+        
+        for c in range(self.num_classes):
+            weighted_count = self.class_weight[c] * histogram[c]
+
+            # left child
+            self.weighted_histogram_left[c] += weighted_count
+            self.weighted_num_samples_left += weighted_count
+
+            # right child
+            self.weighted_histogram_right[c] -= weighted_count
+            self.weighted_num_samples_right -= weighted_count
+
+        self.node_position_threshold = new_position
