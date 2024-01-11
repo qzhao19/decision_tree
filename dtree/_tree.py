@@ -18,7 +18,7 @@ class Tree(object):
                  root_indice, 
                  feature_indice, 
                  is_left, 
-                 missing_value, 
+                 has_missing_value, 
                  threshold, 
                  histogram, 
                  impurity, 
@@ -27,7 +27,7 @@ class Tree(object):
         # children IDs are set when the child nodes are added
         cur_node = Node(0, 0, 
                         feature_indice, 
-                        missing_value, 
+                        has_missing_value, 
                         threshold, 
                         histogram, 
                         impurity,
