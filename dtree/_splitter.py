@@ -3,27 +3,25 @@ import numpy as np
 
 from ._utils import sort
 
-PRECISION = 1e-7
+INFINITY = np.inf
+EPSILON = np.finfo('double').eps
 
-class FeatureSplitter(object):
+
+class Splitter(object):
     def __init__(self, 
                  criterion, 
-                 num_samples, 
-                 num_features, 
-                 num_classes,
+                 num_samples,
+                 num_features,
                  max_num_features,
-                 max_num_thresholds, 
-                 class_weight):
+                 max_num_thresholds):
         
         self.criterion = criterion
-        self.num_samples = num_samples
         self.num_features = num_features
-        self.num_classes = num_classes
+        self.num_samples = num_samples
         self.max_num_features = max_num_features
         self.max_num_thresholds = max_num_thresholds
-        self.class_weight = class_weight
 
-        self.samples = np.arange(0, num_samples)
+        self.sample_indices = np.arange(0, num_samples)
 
     def init_node(self, y, start, end):
         """Initialize node and calculate weighted histograms 
@@ -32,88 +30,98 @@ class FeatureSplitter(object):
         self.start = start
         self.end = end
 
-        self.criterion.compute_node_histogram(y, self.samples, self.start, self.end)
+        self.criterion.compute_node_histogram(y, self.sample_indices, self.start, self.end)
         self.criterion.compute_node_impurity()
 
 
-    def _best_split_feature(self, 
-                           X, y, 
-                           samples, 
-                           feature_indice,  
-                           threshold, 
-                           partition_indice, 
-                           improvement, 
-                           missing_value):
-        
-        # y is not constant (impurity > 0)
-        # has been checked by impurity stop criteria in build()
-        # moving on we can assume at least 2 samples
-
-        # Copy X_feat_i=X[samples[start:end],f] training data X for the current node.
+    def _best_split(self, 
+                      X, y, 
+                      sample_indices, 
+                      feature_indice,  
+                      threshold, 
+                      partition_indice, 
+                      improvement, 
+                      has_missing_value):
+        result = {
+            "threshold": threshold, 
+            "partition_indice": partition_indice, 
+            "improvement": improvement, 
+            "has_missing_value": has_missing_value,
+        }
+            
+        # Copy X_feat=X[sample_indices[start:end], feature_indice] training data X for the current node.
         num_samples = self.end - self.start
         X_feat = np.zeros(num_samples)
         for i in range(num_samples):
-            X_feat[i] = X[samples[i] * self.num_features + feature_indice]
-
-        # Detect samples with missing values and 
-        # move them to the beginning of the samples vector
-        missing_indice = 0
+            X_feat[i] = X[sample_indices[i] * self.num_features + feature_indice]
+        
+        # check the missing value and move them to the beginning of 
+        missing_value_indice = 0
         for i in range(num_samples):
             if np.isnan(X_feat[i]):
-                X_feat[i], X_feat[missing_indice] = X_feat[missing_indice], X_feat[i]
-                samples[i], samples[missing_indice] = X_feat[missing_indice], X_feat[i]
-                missing_indice += 1
+                X_feat[i], X_feat[missing_value_indice] = X_feat[missing_value_indice], X_feat[i]
+                sample_indices[i], sample_indices[missing_value_indice] = sample_indices[missing_value_indice], sample_indices[i]
+                missing_value_indice += 1
         
-        # Can not split feature when all values are NA
-        if missing_indice == num_samples:
-            return 
-        
-        if missing_indice > 0:
-            print("NO YET IMPLEMENT")
 
-        # Split based on threshold
-        feat_max = feat_min = X_feat[missing_indice]
-        for i in range(missing_indice+1, num_samples):
+        # if all samples have missing value, cannot split feature 
+        if missing_value_indice == num_samples:
+            return
+
+        # ---Split just based on missing values---
+        if missing_value_indice > 0:
+            raise NotImplementedError
+
+        # ---Split based on threshold---
+        # check constant feature in the range of [missing_value_indice:num_samples]
+        feat_max = feat_min = X_feat[missing_value_indice]
+        for i in range(missing_value_indice+1, num_samples):
             if X_feat[i] > feat_max:
                 feat_max = X_feat[i]
             elif X_feat[i] < feat_min:
                 feat_min = X_feat[i]
         
-
-        if feat_min + PRECISION < feat_max:
-
-            if missing_indice == 0:
+        if feat_min + EPSILON < feat_max:
+            if missing_value_indice == 0:
+                # init class histogram 
                 self.criterion.init_threshold_histogram()
-            elif missing_indice > 0:
-                print("NO YET IMPLEMENT")
-            
-            # Loop: all thresholds
-            X_feat, samples = sort(X_feat, samples, missing_indice, num_samples)
+            elif missing_value_indice > 0:
+                raise NotImplementedError
 
-            # Find threshold with maximum impurity improvement
-            # Initialize position of last and next potential split to number of missing 
-            
-            prev_indice = missing_indice, next_indice = missing_indice
+            # sort X_feat and samples_indices by X_feat, 
+            # leaving missing value at the beginning,
+            # samples indices are ordered by their faeture values
+            X_feat, samples_indices = sort(X_feat, samples_indices, self.start, self.end)
+
+            # find threshold
+            # init next_indice and indice for the position of last and next potentiel split position
+            indice = missing_value_indice
+            next_indice = missing_value_indice
+
             max_improvement = 0.0
             max_threshold = 0.0
-            max_indice = missing_indice
+            max_threshold_indice = missing_value_indice
 
             while next_indice < num_samples:
-
-                # 
-                if X_feat[next_indice] + PRECISION >= X_feat[num_samples - 1]:
+                # if remaining X_feat are constant, stop
+                if X_feat[next_indice] + EPSILON >= X_feat[num_samples - 1]:
                     break
-                # Skip constant Xf values
-                while (next_indice + 1 < num_samples) and (X_feat[next_indice] + PRECISION >= X_feat[next_indice + 1]):
+
+                # skip constant X_feat value
+                while (next_indice + 1 < num_samples) and (X_feat[next_indice] + EPSILON >= X_feat[next_indice + 1]):
                     next_indice += 1
                 
+                # increment next_indice
                 next_indice += 1
 
-                # Update class histograms for all outputs for using a threshold on values
-                # from current indice p to the new position np (correspond to thresholds)
-                self.criterion.update_threshold_histograms(y, samples, next_indice)
-                
+                # update class histograms from current indice to the new indice
+                self.criterion.update_threshold_histogram(X_feat, samples_indices, next_indice)
+
+                # impurity for all outputs of samples for left child and right child
+                self.compute_threshold_impurity()
+
+                threshold_improvement = 0.0
 
 
 
-            
+
