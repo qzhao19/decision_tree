@@ -154,13 +154,16 @@ class Gini(Criterion):
         impurity_improvement = np.zeros(self.num_outputs)
         # each output
         for o in range(self.num_outputs):
-            impurity_improvement[o] += (self.weighted_num_samples_node[o] / self.num_samples)
+            impurity_improvement[o] += \
+                (self.weighted_num_samples_node[o] / self.num_samples) * (self.impurity_node[o] - \
+                    (self.weighted_num_samples_left[o] / self.weighted_num_samples_node[o]) * self.impurity_left[o] - \
+                        (self.weighted_num_samples_right[o] / self.weighted_num_samples_node[o]) * self.impurity_right[o])
+
+        return np.sum(impurity_improvement)
 
 
 
-
-
-
+    
 
 
 
