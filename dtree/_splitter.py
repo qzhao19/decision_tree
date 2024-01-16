@@ -35,20 +35,21 @@ class Splitter(object):
 
 
     def _best_split(self, 
-                      X, y, 
-                      sample_indices, 
-                      feature_indice,  
-                      threshold, 
-                      partition_indice, 
-                      improvement, 
-                      has_missing_value):
+                    X, y, 
+                    feature_indice,
+                    sample_indices, 
+                    threshold, 
+                    partition_indice, 
+                    improvement, 
+                    has_missing_value):
         result = {
+            "sample_indices": sample_indices,
             "threshold": threshold, 
             "partition_indice": partition_indice, 
             "improvement": improvement, 
             "has_missing_value": has_missing_value,
         }
-            
+        
         # Copy X_feat=X[sample_indices[start:end], feature_indice] training data X for the current node.
         num_samples = self.end - self.start
         X_feat = np.zeros(num_samples)
@@ -81,6 +82,7 @@ class Splitter(object):
             elif X_feat[i] < feat_min:
                 feat_min = X_feat[i]
         
+        # not constant feature
         if feat_min + EPSILON < feat_max:
             if missing_value_indice == 0:
                 # init class histogram 
@@ -88,10 +90,10 @@ class Splitter(object):
             elif missing_value_indice > 0:
                 raise NotImplementedError
 
-            # sort X_feat and samples_indices by X_feat, 
+            # sort X_feat and sample_indices by X_feat, 
             # leaving missing value at the beginning,
             # samples indices are ordered by their faeture values
-            X_feat, samples_indices = sort(X_feat, samples_indices, self.start, self.end)
+            X_feat, sample_indices = sort(X_feat, sample_indices, self.start, self.end)
 
             # find threshold
             # init next_indice and indice for the position of last and next potentiel split position
@@ -115,13 +117,63 @@ class Splitter(object):
                 next_indice += 1
 
                 # update class histograms from current indice to the new indice
-                self.criterion.update_threshold_histogram(X_feat, samples_indices, next_indice)
+                self.criterion.update_threshold_histogram(X_feat, sample_indices, next_indice)
 
-                # impurity for all outputs of samples for left child and right child
-                self.compute_threshold_impurity()
+                # compute impurity for all outputs of samples for left child and right child
+                self.criterion.compute_threshold_impurity()
 
+                # compute impurity improvement
                 threshold_improvement = 0.0
+                if missing_value_indice == 0:
+                    threshold_improvement = self.criterion.compute_impurity_improvement()
+
+                if missing_value_indice > 0:
+                    raise NotImplementedError
+
+                # Identify maximum impurity improvement
+                if threshold_improvement > max_improvement:
+                    max_improvement = threshold_improvement
+                    max_threshold = (X_feat[indice] + X_feat[next_indice]) / 2
+                    max_threshold_indice = self.start + next_indice
+
+                # if right node impurity is 0.0 stop
+                if self.criterion.get_impurity_right() < EPSILON:
+                    break
+
+                indice = next_indice
+
+            if missing_value_indice == 0:
+                result = {
+                    "sample_indices": sample_indices,
+                    "threshold": max_threshold, 
+                    "partition_indice": max_threshold_indice, 
+                    "improvement": max_improvement, 
+                    "has_missing_value": -1,
+                }
+            
+            if missing_value_indice > 0:
+                raise NotImplementedError
+            
+            return result
 
 
+    def _random_split(self, 
+                    X, y, 
+                    sample_indices, 
+                    feature_indice,  
+                    threshold, 
+                    partition_indice, 
+                    improvement, 
+                    has_missing_value):
+        pass
 
 
+    def split_node(self, X, y,
+                   feature_indice,  
+                   threshold, 
+                   partition_indice, 
+                   improvement, 
+                   has_missing_value):
+        
+        sample_indices = self.sample_indices[self.start, self.end]
+        
