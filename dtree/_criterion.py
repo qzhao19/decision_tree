@@ -163,6 +163,11 @@ class Gini(Criterion):
 
 
 
+    def get_impurity_left(self):
+        return np.sum(self.impurity_left) / self.num_outputs
+    
+    def get_impurity_right(self):
+        return np.sum(self.impurity_right) / self.num_outputs
     
 
 
