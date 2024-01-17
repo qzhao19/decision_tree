@@ -175,5 +175,40 @@ class Splitter(object):
                    improvement, 
                    has_missing_value):
         
+        # Copy sample_indices = self.sample_indices[start:end]
+        # lookup-table to the training data X, y
         sample_indices = self.sample_indices[self.start, self.end]
         
+        # -- K random select features --
+        # Features are sampled with replacement using the 
+        # modern version Fischer-Yates shuffle algorithm
+
+        feat_indices = np.zeros(self.num_features)
+        # i = n, instead of n - 1
+        i = self.num_features
+
+        while i > (self.num_features - self.max_num_features) or (improvement < EPSILON and i > 0):
+            j = 0
+
+            # uniform_int(low, high), low is inclusive and high is exclusive
+            if (j > 1):
+                j = np.random.randint(0, i)
+            
+
+            i -= 1
+            feat_indices[i], feat_indices[j] = feat_indices[j], feat_indices[i]
+            f = feat_indices[i]
+
+            # split features
+            f_missing_value_indice = 0
+            f_threshold = 0.0
+            f_indice = 0
+            f_improvement = 0.0
+
+
+
+
+
+
+
+
