@@ -8,6 +8,9 @@ EPSILON = np.finfo('double').eps
 
 
 class Splitter(object):
+    """
+
+    """
     def __init__(self, 
                  criterion, 
                  num_samples,
@@ -36,8 +39,8 @@ class Splitter(object):
 
     def _best_split(self, 
                     X, y, 
+                    sample_indices,
                     feature_indice,
-                    sample_indices, 
                     threshold, 
                     partition_indice, 
                     improvement, 
@@ -168,12 +171,7 @@ class Splitter(object):
         pass
 
 
-    def split_node(self, X, y,
-                   feature_indice,  
-                   threshold, 
-                   partition_indice, 
-                   improvement, 
-                   has_missing_value):
+    def split_node(self, X, y):
         
         # Copy sample_indices = self.sample_indices[start:end]
         # lookup-table to the training data X, y
@@ -184,6 +182,7 @@ class Splitter(object):
         # modern version Fischer-Yates shuffle algorithm
 
         feat_indices = np.zeros(self.num_features)
+        improvement = 0.0
         # i = n, instead of n - 1
         i = self.num_features
 
@@ -197,17 +196,42 @@ class Splitter(object):
 
             i -= 1
             feat_indices[i], feat_indices[j] = feat_indices[j], feat_indices[i]
-            f = feat_indices[i]
+            feat_indice = feat_indices[i]
 
             # split features
-            f_missing_value_indice = 0
+            f_has_missing_value = 0
             f_threshold = 0.0
-            f_indice = 0
+            f_partition_indice = 0
             f_improvement = 0.0
 
+            if self.max_num_thresholds == 0:
+                result = self._best_split(X, y, 
+                                          sample_indices, 
+                                          feat_indice, 
+                                          f_threshold, 
+                                          f_partition_indice, 
+                                          f_improvement, 
+                                          f_has_missing_value)
+            else:
+                raise NotImplementedError
 
+            if f_improvement > improvement:
+                improvement = result["improvement"]
+                has_missing_value = result["has_missing_value"]
+                threshold = result["threshold"]
+                partition_indice = result["partition_indice"]
+                self.sample_indices[self.start, self.end] = result["sample_indices"]
 
+                return {
+                    "feature_indice": feat_indice,
+                    "sample_indices": sample_indices,
+                    "threshold": threshold, 
+                    "partition_indice": partition_indice, 
+                    "improvement": improvement, 
+                    "has_missing_value": has_missing_value,
+                }
 
+        
 
 
 
