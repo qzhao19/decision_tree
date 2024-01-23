@@ -224,7 +224,6 @@ class Splitter(object):
 
                 return {
                     "feature_indice": feat_indice,
-                    "sample_indices": sample_indices,
                     "threshold": threshold, 
                     "partition_indice": partition_indice, 
                     "improvement": improvement, 
