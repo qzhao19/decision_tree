@@ -1,30 +1,31 @@
 import numpy as np
 
 class Criterion(object):
-    def __init__(self, class_weight, 
+    def __init__(self, 
                  num_outputs, 
                  num_samples, 
                  num_classes_max, 
-                 num_classes_list):
-        self.class_weight = class_weight
+                 num_classes_list,
+                 class_weights):
         self.num_outputs = num_outputs
         self.num_samples = num_samples
         self.num_classes_max = num_classes_max
         self.num_classes_list = num_classes_list
-        
+        self.class_weights = class_weights
 
 
 class Gini(Criterion):
-    def __init__(self, class_weight, 
+    def __init__(self, 
                  num_outputs, 
                  num_samples, 
                  num_classes_max,
-                 num_classes_list):
-        super().__init__(class_weight, 
-                         num_outputs, 
+                 num_classes_list,                 
+                 class_weights):
+        super().__init__(num_outputs, 
                          num_samples, 
                          num_classes_max, 
-                         num_classes_list)
+                         num_classes_list, 
+                         class_weights)
         
         # impurity of in the current node
         self.impurity_node = np.zeros(num_outputs)
