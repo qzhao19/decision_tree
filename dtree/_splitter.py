@@ -172,7 +172,6 @@ class Splitter(object):
 
 
     def split_node(self, X, y):
-        
         # Copy sample_indices = self.sample_indices[start:end]
         # lookup-table to the training data X, y
         sample_indices = self.sample_indices[self.start, self.end]
