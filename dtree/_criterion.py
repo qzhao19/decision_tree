@@ -162,18 +162,25 @@ class Gini(Criterion):
 
         return np.sum(impurity_improvement)
 
+    @property
+    def get_impurity_node(self):
+        return np.sum(self.impurity_node) / self.num_outputs
 
-
+    @property
     def get_impurity_left(self):
         return np.sum(self.impurity_left) / self.num_outputs
     
+    @property
     def get_impurity_right(self):
         return np.sum(self.impurity_right) / self.num_outputs
     
+    # get the weighted histogram for the current node
+    @property
+    def get_weighted_histogram(self):
+        return self.weighted_histogram_node
 
 
-
-
+    
 
 
 
