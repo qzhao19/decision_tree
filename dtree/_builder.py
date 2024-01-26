@@ -24,13 +24,10 @@ class DepthFirstTreeBuilder(object):
                  num_features,
                  num_classes_max, 
                  num_classes_list,
-                 
                  min_samples_split,
                  min_samples_leaf,
                  min_weight_leaf,
-
                  max_num_features,
-                 max_num_thresholds,
                  max_depths,
                  class_weights
                 ):
@@ -47,7 +44,6 @@ class DepthFirstTreeBuilder(object):
         self.min_weight_leaf = min_weight_leaf
 
         self.max_num_features = max_num_features
-        self.max_num_thresholds = max_num_thresholds
         self.max_depths = max_depths
         self.class_weights = class_weights
 
@@ -111,9 +107,10 @@ class DepthFirstTreeBuilder(object):
             )
 
             if not is_leaf:
+                # push right child node info into the stack
+                node_info_stk.append(NodeInfo(partition_indice, node_info.end, node_info.depth + 1, node_indice, False))
 
-                node_info_stk.append(NodeInfo(0, num_samples, 0, 0, False))
-
-
+                # push left child node info into the stack
+                node_info_stk.append(NodeInfo(node_info.start, partition_indice, node_info.depth + 1, node_indice, True))
 
 
