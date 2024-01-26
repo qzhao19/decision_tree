@@ -3,6 +3,10 @@ import numpy as np
 from ._node import Node
 
 class Tree(object):
+    """The binary tree is represented as a number of parallel arrays. The i-th
+    element of each array holds information about the node `i`. Node 0 is the
+    tree's root. 
+    """
     def __init__(self, num_outputs, num_classes, num_features):
         self.num_outputs = num_outputs
         self.num_classes = num_classes
@@ -15,9 +19,9 @@ class Tree(object):
 
     def add_node(self, 
                  depth, 
-                 root_indice, 
-                 feature_indice, 
+                 parent_indice, 
                  is_left, 
+                 feature_indice, 
                  has_missing_value, 
                  threshold, 
                  histogram, 
@@ -38,16 +42,18 @@ class Tree(object):
         node_indice = self.node_count + 1
         if depth > 0:
             if is_left:
-                self.nodes[root_indice].left_child = node_indice
+                self.nodes[parent_indice].left_child = node_indice
             else:
-                self.nodes[root_indice].right_child = node_indice
+                self.nodes[parent_indice].right_child = node_indice
 
         if depth > self.max_depth:
             self.max_depth = depth
         
         return node_indice
 
-    def calculate_feature_importances(self):
+    def compute_feature_importances(self):
+        """compute the importances of each feature 
+        """
         importances = np.zeros(self.num_features)
 
         if (self.node_count == 0):
