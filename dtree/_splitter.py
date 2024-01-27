@@ -8,21 +8,20 @@ EPSILON = np.finfo('double').eps
 
 
 class Splitter(object):
-    """
-
+    """Splitter to find the best split for a node
     """
     def __init__(self, 
                  criterion, 
                  num_samples,
                  num_features,
                  max_num_features,
-                 max_num_thresholds):
+                 split_strategy = "best" ):
         
         self.criterion = criterion
         self.num_features = num_features
         self.num_samples = num_samples
         self.max_num_features = max_num_features
-        self.max_num_thresholds = max_num_thresholds
+        self.split_strategy = split_strategy
 
         self.sample_indices = np.arange(0, num_samples)
 
@@ -57,7 +56,7 @@ class Splitter(object):
         num_samples = self.end - self.start
         X_feat = np.zeros(num_samples)
         for i in range(num_samples):
-            X_feat[i] = X[sample_indices[i] * self.num_features + feature_indice]
+            X_feat[i] = X[ [i] * self.num_features + feature_indice]
         
         # check the missing value and move them to the beginning of 
         missing_value_indice = 0
@@ -140,7 +139,7 @@ class Splitter(object):
                     max_threshold_indice = self.start + next_indice
 
                 # if right node impurity is 0.0 stop
-                if self.criterion.get_impurity_right() < EPSILON:
+                if self.criterion.get_impurity_right < EPSILON:
                     break
 
                 indice = next_indice
@@ -203,7 +202,7 @@ class Splitter(object):
             f_partition_indice = 0
             f_improvement = 0.0
 
-            if self.max_num_thresholds == 0:
+            if self.split_strategy == "best":
                 result = self._best_split(X, y, 
                                           sample_indices, 
                                           feat_indice, 
