@@ -14,7 +14,7 @@ def sort(x, y, start, end, reverse=True):
 
     return np.array(x), np.array(y)
 
-
+# from sklearn
 def check_random_state(seed):
     """Turn seed into a np.random.RandomState instance.
 
@@ -43,6 +43,30 @@ def check_random_state(seed):
     )
 
 
+def check_sample_weight(sample_weight, num_samples, dtype=None):
+    """Validate sample weights.
+    """
+
+    if dtype is not None and dtype not in [np.float32, np.float64]:
+        dtype = np.float64
+
+    if sample_weight is None:
+        sample_weight = np.ones(num_samples, dtype=dtype)
+    elif isinstance(sample_weight, numbers.Number):
+        sample_weight = np.full(num_samples, sample_weight, dtype=dtype)
+    
+    return sample_weight
 
 
+def check_input_X_y(X, y):
+    if X.size() != y.size():
+        raise ValueError("X and y must be the same size.")
+    
+    if X.ndim != 0:
+        raise ValueError("X expected 2D array, but got scalar array.")
 
+    if X.ndim != 1:
+        X = X.reshape(-1)
+
+    y = np.atleast_1d(y)
+    return X, y
