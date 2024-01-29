@@ -19,32 +19,20 @@ class DepthFirstTreeBuilder(object):
     def __init__(self, 
                  tree,
                  splitter,
-                 num_outputs, 
-                 num_samples, 
-                 num_features,
-                 num_classes_max, 
-                 num_classes_list,
                  min_samples_split,
                  min_samples_leaf,
                  min_weight_leaf,
-                 max_num_features,
-                 max_depths,
+                 max_depth,
                  class_weights
                 ):
         self.tree = tree
         self.splitter = splitter
-        self.num_outputs = num_outputs
-        self.num_samples = num_samples
-        self.num_features = num_features
-        self.num_classes_max = num_classes_max
-        self.num_classes_list = num_classes_list
 
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
         self.min_weight_leaf = min_weight_leaf
 
-        self.max_num_features = max_num_features
-        self.max_depths = max_depths
+        self.max_depth = max_depth
         self.class_weights = class_weights
 
 
@@ -70,7 +58,7 @@ class DepthFirstTreeBuilder(object):
             partition_indice = 0
 
             # stop criterion is met node becomes a leaf node
-            is_leaf = (node_info.depth >= self.max_depths or 
+            is_leaf = (node_info.depth >= self.max_depth or 
                        num_samples_node < self.min_samples_split or 
                        num_samples_node < 2 * self.min_samples_leaf or 
                        num_samples_node < 2 * self.min_weight_leaf)
