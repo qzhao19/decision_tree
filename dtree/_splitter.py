@@ -15,13 +15,13 @@ class Splitter(object):
                  num_samples,
                  num_features,
                  max_num_features,
-                 split_strategy = "best" ):
+                 split_policy = "best" ):
         
         self.criterion = criterion
         self.num_features = num_features
         self.num_samples = num_samples
         self.max_num_features = max_num_features
-        self.split_strategy = split_strategy
+        self.split_policy = split_policy
 
         self.sample_indices = np.arange(0, num_samples)
 
@@ -34,7 +34,6 @@ class Splitter(object):
 
         self.criterion.compute_node_histogram(y, self.sample_indices, self.start, self.end)
         self.criterion.compute_node_impurity()
-
 
     def _best_split(self, 
                     X, y, 
@@ -186,12 +185,10 @@ class Splitter(object):
 
         while i > (self.num_features - self.max_num_features) or (improvement < EPSILON and i > 0):
             j = 0
-
             # uniform_int(low, high), low is inclusive and high is exclusive
             if (j > 1):
                 j = np.random.randint(0, i)
             
-
             i -= 1
             feat_indices[i], feat_indices[j] = feat_indices[j], feat_indices[i]
             feat_indice = feat_indices[i]
@@ -202,7 +199,7 @@ class Splitter(object):
             f_partition_indice = 0
             f_improvement = 0.0
 
-            if self.split_strategy == "best":
+            if self.split_policy == "best":
                 result = self._best_split(X, y, 
                                           sample_indices, 
                                           feat_indice, 
