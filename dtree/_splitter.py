@@ -15,13 +15,15 @@ class Splitter(object):
                  num_samples,
                  num_features,
                  max_num_features,
-                 split_policy = "best" ):
+                 split_policy = "best", 
+                 random_state = None):
         
         self.criterion = criterion
         self.num_features = num_features
         self.num_samples = num_samples
         self.max_num_features = max_num_features
         self.split_policy = split_policy
+        self.random_state = random_state
 
         self.sample_indices = np.arange(0, num_samples)
 
@@ -55,7 +57,7 @@ class Splitter(object):
         num_samples = self.end - self.start
         X_feat = np.zeros(num_samples)
         for i in range(num_samples):
-            X_feat[i] = X[ [i] * self.num_features + feature_indice]
+            X_feat[i] = X[int(sample_indices[i] * self.num_features + feature_indice)]
         
         # check the missing value and move them to the beginning of 
         missing_value_indice = 0
@@ -134,7 +136,7 @@ class Splitter(object):
                 # Identify maximum impurity improvement
                 if threshold_improvement > max_improvement:
                     max_improvement = threshold_improvement
-                    max_threshold = (X_feat[indice] + X_feat[next_indice]) / 2
+                    max_threshold = (X_feat[indice] + X_feat[next_indice]) / 2.0
                     max_threshold_indice = self.start + next_indice
 
                 # if right node impurity is 0.0 stop
@@ -172,7 +174,7 @@ class Splitter(object):
     def split_node(self, X, y):
         # Copy sample_indices = self.sample_indices[start:end]
         # lookup-table to the training data X, y
-        sample_indices = self.sample_indices[self.start, self.end]
+        sample_indices = self.sample_indices[self.start : self.end]
         
         # -- K random select features --
         # Features are sampled with replacement using the 
@@ -187,7 +189,7 @@ class Splitter(object):
             j = 0
             # uniform_int(low, high), low is inclusive and high is exclusive
             if (j > 1):
-                j = np.random.randint(0, i)
+                j = self.random_state.randint(0, i)
             
             i -= 1
             feat_indices[i], feat_indices[j] = feat_indices[j], feat_indices[i]
@@ -197,7 +199,7 @@ class Splitter(object):
             f_has_missing_value = 0
             f_threshold = 0.0
             f_partition_indice = 0
-            f_improvement = 0.0
+            f_improvement = improvement
 
             if self.split_policy == "best":
                 result = self._best_split(X, y, 
@@ -207,22 +209,27 @@ class Splitter(object):
                                           f_partition_indice, 
                                           f_improvement, 
                                           f_has_missing_value)
+                print(result)
+                f_improvement = result["improvement"]
+                f_has_missing_value = result["has_missing_value"]
+                f_threshold = result["threshold"]
+                f_partition_indice = result["partition_indice"]
             else:
                 raise NotImplementedError
 
             if f_improvement > improvement:
-                improvement = result["improvement"]
-                has_missing_value = result["has_missing_value"]
-                threshold = result["threshold"]
-                partition_indice = result["partition_indice"]
-                self.sample_indices[self.start, self.end] = result["sample_indices"]
+                # improvement = result["improvement"]
+                # has_missing_value = result["has_missing_value"]
+                # threshold = result["threshold"]
+                # partition_indice = result["partition_indice"]
+                self.sample_indices[self.start : self.end] = result["sample_indices"]
 
                 return {
                     "feature_indice": feat_indice,
-                    "threshold": threshold, 
-                    "partition_indice": partition_indice, 
-                    "improvement": improvement, 
-                    "has_missing_value": has_missing_value,
+                    "threshold": f_threshold, 
+                    "partition_indice": f_partition_indice, 
+                    "improvement": f_improvement, 
+                    "has_missing_value": f_has_missing_value,
                 }
 
         
