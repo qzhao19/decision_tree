@@ -17,13 +17,13 @@ class DecisionTreeClassifier(object):
     def __init__(self, 
                  criterion_option, 
                  split_policy, 
-                 class_weights,
-                 max_depth, 
-                 min_samples_split,
-                 min_samples_leaf,
-                 min_weight_fraction_leaf, 
-                 max_num_features,
-                 random_state):
+                 class_weights = None,
+                 max_depth = 4, 
+                 min_samples_split = 2,
+                 min_samples_leaf = 1,
+                 min_weight_fraction_leaf = 0.0, 
+                 max_num_features = None,
+                 random_state = None):
         
         self.criterion_option = criterion_option
         self.split_policy = split_policy
@@ -36,26 +36,25 @@ class DecisionTreeClassifier(object):
         self.random_state = random_state
 
     def fit(self, X, y):
-
         seed = check_random_state(self.random_state)
 
         num_samples, num_features = X.shape
         X, y = check_input_X_y(X, y)
 
         # get outputs setting 
-        num_outputs = y.shape[1]
         classes = []
         num_classes_list = []
 
         # reshape y shape (150, ) to (150, 1)
         y_encoded = np.reshape(y, (-1, 1))
+        num_outputs = y_encoded.shape[1]
         for k in range(num_outputs):
             classes_k, _ = np.unique(y_encoded[:, k], return_inverse=True)
             classes.append(classes_k)
             num_classes_list.append(classes_k.shape[0])
+        num_classes_max = np.max(num_classes_list)
 
-        num_classes_max = np.max(self.num_classes_list)
-
+        # check max_depth
         max_depth = np.iinfo(np.int32).max if self.max_depth is None else self.max_depth
 
         # check min_samples_leaf
@@ -93,6 +92,8 @@ class DecisionTreeClassifier(object):
         else:
             min_weight_leaf = self.min_weight_fraction_leaf * np.sum(self.class_weights)
         
+        print(X.shape)
+        print(y.shape)
 
         if self.criterion_option == "gini":
             criterion = Gini(
@@ -111,7 +112,8 @@ class DecisionTreeClassifier(object):
             num_samples,
             num_features,
             max_num_features,
-            split_policy = "best"
+            self.split_policy, 
+            seed,
         )
 
         tree = Tree(num_outputs, num_classes_max, num_features)
