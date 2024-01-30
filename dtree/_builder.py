@@ -53,8 +53,8 @@ class DepthFirstTreeBuilder(object):
             # calculate number of samples per class histogram for all outputs
             # and impurity for the current node
             self.splitter.init_node(y, node_info.start, node_info.end)
-            histogram = self.splitter.get_weighted_histogram
-            impurity = self.splitter.get_impurity_node
+            histogram = self.splitter.criterion.get_weighted_histogram
+            impurity = self.splitter.criterion.get_impurity_node
             partition_indice = 0
 
             # stop criterion is met node becomes a leaf node
@@ -63,7 +63,7 @@ class DepthFirstTreeBuilder(object):
                        num_samples_node < 2 * self.min_samples_leaf or 
                        num_samples_node < 2 * self.min_weight_leaf)
             
-            if_leaf = is_leaf or impurity <= EPSILON
+            is_leaf = is_leaf or impurity <= EPSILON
 
             # split node if it is not leaf node
             feature_indice = 0
@@ -73,6 +73,8 @@ class DepthFirstTreeBuilder(object):
 
             if not is_leaf:
                 split_info = self.splitter.split_node(X, y)
+
+                print(split_info)
                 feature_indice = split_info["feature_indice"]
                 has_missing_value = split_info["has_missing_value"]
                 threshold = split_info["threshold"]
