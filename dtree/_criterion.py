@@ -110,7 +110,7 @@ class Gini(Criterion):
             
             for c in range(self.num_classes_list[o]):
                 self.weighted_histogram_left[o, c] = 0.0
-                self.weighted_histogram_right[c, o] = self.weighted_histogram_node[o, c]
+                self.weighted_histogram_right[o, c] = self.weighted_histogram_node[o, c]
             
             self.weighted_num_samples_left[o] = 0
             self.weighted_num_samples_right[o] = self.weighted_num_samples_node[o]
