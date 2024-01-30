@@ -46,7 +46,6 @@ def check_random_state(seed):
 def check_sample_weight(sample_weight, num_samples, dtype=None):
     """Validate sample weights.
     """
-
     if dtype is not None and dtype not in [np.float32, np.float64]:
         dtype = np.float64
 
@@ -59,14 +58,11 @@ def check_sample_weight(sample_weight, num_samples, dtype=None):
 
 
 def check_input_X_y(X, y):
-    if X.size() != y.size():
+    if len(X) != len(y):
         raise ValueError("X and y must be the same size.")
     
-    if X.ndim != 0:
-        raise ValueError("X expected 2D array, but got scalar array.")
-
     if X.ndim != 1:
         X = X.reshape(-1)
 
     y = np.atleast_1d(y)
-    return X, y
+    return X.astype(np.double), y.astype(int)
