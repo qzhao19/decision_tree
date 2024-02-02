@@ -153,12 +153,11 @@ class Splitter(object):
                     "improvement": max_improvement, 
                     "has_missing_value": -1,
                 }
+                return result
             
             if missing_value_indice > 0:
                 raise NotImplementedError
             
-            return result
-
 
     def _random_split(self, 
                     X, y, 
