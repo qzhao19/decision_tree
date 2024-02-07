@@ -9,10 +9,10 @@ def sort(x, y, start, end, reverse=True):
     else:
         x_y[start:end] = sorted(x_y[start:end], key=lambda z: z[0], reverse=True)
     
-    x[:] = [z[0] for z in x_y]
-    y[:] = [z[1] for z in x_y]
+    sorted_x = [z[0] for z in x_y]
+    sorted_y = [z[1] for z in x_y]
 
-    return np.array(x), np.array(y)
+    return np.array(sorted_x), np.array(sorted_y)
 
 # from sklearn
 def check_random_state(seed):
