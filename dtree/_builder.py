@@ -74,15 +74,15 @@ class DepthFirstTreeBuilder(object):
             if not is_leaf:
                 split_info = self.splitter.split_node(X, y)
 
-                print(split_info)
+                # print(split_info)
                 feature_indice = split_info["feature_indice"]
                 has_missing_value = split_info["has_missing_value"]
                 threshold = split_info["threshold"]
                 improvement = split_info["improvement"]
                 partition_indice = split_info["partition_indice"]
 
-                if split_info["improvement"] < EPSILON:
-                    if_leaf = True
+                if split_info["improvement"] <= EPSILON:
+                    is_leaf = True
 
             node_indice = self.tree.add_node(
                 node_info.depth, 
