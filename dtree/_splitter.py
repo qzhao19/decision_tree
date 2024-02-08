@@ -97,7 +97,9 @@ class Splitter(object):
             # leaving missing value at the beginning,
             # samples indices are ordered by their faeture values
             X_feat, sample_indices = sort(X_feat, sample_indices, self.start, self.end)
-
+            print(self.start)
+            print(self.end)
+            print(sample_indices)
             # find threshold
             # init next_indice and indice for the position of last and next potentiel split position
             indice = missing_value_indice
@@ -146,18 +148,17 @@ class Splitter(object):
                 indice = next_indice
 
             if missing_value_indice == 0:
-                result = {
-                    "sample_indices": sample_indices,
-                    "threshold": max_threshold, 
-                    "partition_indice": max_threshold_indice, 
-                    "improvement": max_improvement, 
-                    "has_missing_value": -1,
-                }
-                return result
-            
+                result["sample_indices"] = sample_indices
+                result["threshold"] = max_threshold
+                result["partition_indice"] = max_threshold_indice
+                result["improvement"] = max_improvement
+                result["max_improvement"] = -1
+
             if missing_value_indice > 0:
                 raise NotImplementedError
             
+            return result
+        
 
     def _random_split(self, 
                     X, y, 
@@ -208,7 +209,7 @@ class Splitter(object):
                                           f_partition_indice, 
                                           f_improvement, 
                                           f_has_missing_value)
-                print(result)
+                # print(result)
                 f_improvement = result["improvement"]
                 f_has_missing_value = result["has_missing_value"]
                 f_threshold = result["threshold"]

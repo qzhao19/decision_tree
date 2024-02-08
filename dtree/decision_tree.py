@@ -92,8 +92,8 @@ class DecisionTreeClassifier(object):
         else:
             min_weight_leaf = self.min_weight_fraction_leaf * np.sum(self.class_weights)
         
-        print(X.shape)
-        print(y.shape)
+        # print(X.shape)
+        # print(y.shape)
 
         if self.criterion_option == "gini":
             criterion = Gini(
