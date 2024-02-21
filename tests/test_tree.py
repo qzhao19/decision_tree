@@ -34,4 +34,29 @@ class TestTree(unittest.TestCase):
     
     criterion = Gini(n_outputs, n_samples, n_classes_max, n_classes, class_weight)
 
-    
+    def test_add_node(self):
+        # split node if it is not leaf node
+        feature_indice = 0
+        has_missing_value = -1  # default: no missing value
+        threshold = 0.0
+        improvement = 0.0
+
+        self.criterion.compute_node_histogram(self.y, self.sample_indices, 0, self.n_samples)
+        weighted_histogram = self.criterion.get_weighted_histogram
+        self.criterion.compute_node_impurity()
+        impurity = self.criterion.get_impurity_node
+
+        node_indice = self.tree.add_node(
+                0, 
+                0, 
+                False,
+                feature_indice, 
+                has_missing_value, 
+                threshold, 
+                weighted_histogram, 
+                impurity, 
+                improvement,
+            )
+
+if __name__ == '__main__':
+    unittest.main()
