@@ -58,3 +58,33 @@ class Splitter(object):
                 X_feat[i], X_feat[missing_value_indice] = X_feat[missing_value_indice], X_feat[i]
                 sample_indices[i], sample_indices[missing_value_indice] = sample_indices[missing_value_indice], sample_indices[i]
                 missing_value_indice += 1
+        
+        # if all samples have missing value, cannot split feature 
+        if missing_value_indice == num_samples:
+            return
+
+        # ---Split just based on missing values---
+        if missing_value_indice > 0:
+            raise NotImplementedError
+        
+        # ---Split based on threshold---
+        # check constant feature in the range of [missing_value_indice:num_samples]
+        feat_max = feat_min = X_feat[missing_value_indice]
+        for i in range(missing_value_indice+1, num_samples):
+            if X_feat[i] > feat_max:
+                feat_max = X_feat[i]
+            elif X_feat[i] < feat_min:
+                feat_min = X_feat[i]
+        
+        # not constant feature
+        if feat_min + EPSILON < feat_max:
+            if missing_value_indice == 0:
+                # init class histogram 
+                self.criterion.init_threshold_histogram()
+            elif missing_value_indice > 0:
+                raise NotImplementedError
+
+            # sort X_feat and sample_indices by X_feat, 
+            # leaving missing value at the beginning,
+            # samples indices are ordered by their faeture values
+            X_feat, sample_indices = sort(X_feat, sample_indices, self.start, self.end)
