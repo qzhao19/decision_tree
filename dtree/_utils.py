@@ -1,7 +1,7 @@
 import numbers
 import numpy as np
 
-def sort(x, y, start, end, reverse=True):
+def sort(x, y, start, end, reverse=False):
     x_y = [(x[i], y[i]) for i in range(len(x))]
     
     if not reverse:
