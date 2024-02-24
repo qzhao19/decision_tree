@@ -87,4 +87,39 @@ class Splitter(object):
             # sort X_feat and sample_indices by X_feat, 
             # leaving missing value at the beginning,
             # samples indices are ordered by their faeture values
-            X_feat, sample_indices = sort(X_feat, sample_indices, self.start, self.end)
+            X_feat, sample_indices = sort(X_feat, sample_indices, missing_value_indice, num_samples, reverse = False)
+
+            # find threshold
+            # init next_indice and indice for the position of last and next potentiel split position
+            indice = missing_value_indice
+            next_indice = missing_value_indice
+
+            max_improvement = 0.0
+            max_threshold = 0.0
+            max_threshold_indice = missing_value_indice
+
+            while next_indice < num_samples:
+                # if remaining X_feat are constant, stop
+                if X_feat[next_indice] + EPSILON >= X_feat[num_samples - 1]:
+                    break
+
+                # skip constant X_feat value
+                while (next_indice + 1 < num_samples) and (X_feat[next_indice] + EPSILON >= X_feat[next_indice + 1]):
+                    next_indice += 1
+                
+                # increment next_indice
+                next_indice += 1
+
+                # update class histograms from current indice to the new indice
+                self.criterion.update_threshold_histogram(X_feat, sample_indices, next_indice)
+
+                # compute impurity for all outputs of samples for left child and right child
+                self.criterion.compute_threshold_impurity()
+
+                # compute impurity improvement
+                threshold_improvement = 0.0
+                if missing_value_indice == 0:
+                    threshold_improvement = self.criterion.compute_impurity_improvement()
+                elif missing_value_indice > 0:
+                    NotImplementedError
+                
