@@ -123,3 +123,23 @@ class Splitter(object):
                 elif missing_value_indice > 0:
                     NotImplementedError
                 
+                if missing_value_indice > 0:
+                    raise NotImplementedError
+
+                # Identify maximum impurity improvement
+                if threshold_improvement > max_improvement:
+                    max_improvement = threshold_improvement
+                    max_threshold = (X_feat[indice] + X_feat[next_indice]) / 2.0
+                    max_threshold_indice = self.start + next_indice
+
+                # if right node impurity is 0.0 stop
+                if self.criterion.get_impurity_right < EPSILON:
+                    break
+
+                indice = next_indice
+
+                
+
+
+
+
