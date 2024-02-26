@@ -29,7 +29,7 @@ class TestSplitter(unittest.TestCase):
     n_classes_max = np.max(n_classes)
     class_weight = np.ones((n_outputs * n_classes_max))
     n_samples = int(len(y) / n_outputs)
-    n_features = 3
+    n_features = 4
     sample_indices = np.arange(0, n_samples)
 
     criterion = Gini(n_outputs, n_samples, n_classes_max, n_classes, class_weight)
@@ -41,15 +41,13 @@ class TestSplitter(unittest.TestCase):
                         split_policy = "best", 
                         random_state = None)
 
-    def test_init_node(self):
+    def test_split_node(self):
         self.splitter.init_node(self.y, 0, self.n_samples)
         weighted_histogram = self.splitter.criterion.get_weighted_histogram
         self.assertTrue((weighted_histogram == np.array([[3., 3., 3.]])).all())
-
-    def test_split_node(self):
-        self.splitter.init_node(self.y, 0, self.n_samples)
-        result = self.splitter.split_node(self.X, self.y)
-        print(result)
+        
+        split_info = self.splitter.split_node(self.X, self.y)
+        print(split_info)
 
 
 
