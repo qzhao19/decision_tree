@@ -1,7 +1,7 @@
 import copy
 import numpy as np
 
-from ._utils import sort
+from ._utils import sort, check_random_state
 
 INFINITY = np.inf
 EPSILON = np.finfo('double').eps
@@ -15,16 +15,17 @@ class Splitter(object):
                  num_samples,
                  num_features,
                  max_num_features,
-                 split_policy = "best", 
-                 random_state = None):
+                 split_policy, 
+                 random_state):
         
         self.criterion = criterion
         self.num_features = num_features
         self.num_samples = num_samples
         self.max_num_features = max_num_features
         self.split_policy = split_policy
-        self.random_state = random_state
+        self.random_state = check_random_state(seed=random_state)
 
+        # initialize sample_indices[0, num_samples] to the training data X, y
         self.sample_indices = np.arange(0, num_samples)
 
     def init_node(self, y, start, end):
@@ -44,6 +45,14 @@ class Splitter(object):
                     partition_indice, 
                     improvement, 
                     has_missing_value):
+
+        split_info = {
+            "sample_indices": sample_indices,
+            "threshold": threshold, 
+            "partition_indice": partition_indice, 
+            "improvement": improvement, 
+            "has_missing_value": has_missing_value,
+        }
 
         # Copy X_feat=X[sample_indices[start:end], feature_indice] training data X for the current node.
         num_samples = self.end - self.start
@@ -88,7 +97,6 @@ class Splitter(object):
             # leaving missing value at the beginning,
             # samples indices are ordered by their faeture values
             X_feat, sample_indices = sort(X_feat, sample_indices, missing_value_indice, num_samples, reverse = False)
-
             # find threshold
             # init next_indice and indice for the position of last and next potentiel split position
             indice = missing_value_indice
@@ -111,7 +119,7 @@ class Splitter(object):
                 next_indice += 1
 
                 # update class histograms from current indice to the new indice
-                self.criterion.update_threshold_histogram(X_feat, sample_indices, next_indice)
+                self.criterion.update_threshold_histogram(y, sample_indices, next_indice)
 
                 # compute impurity for all outputs of samples for left child and right child
                 self.criterion.compute_threshold_impurity()
@@ -138,8 +146,80 @@ class Splitter(object):
 
                 indice = next_indice
 
+            if missing_value_indice == 0:
+                split_info["sample_indices"] = sample_indices
+                split_info["threshold"] = max_threshold
+                split_info["partition_indice"] = max_threshold_indice
+                split_info["improvement"] = max_improvement
+                split_info["has_missing_value"] = -1
+
+            if missing_value_indice > 0:
+                raise NotImplementedError
+            
+            return split_info
                 
+    def _random_split(self):
+        pass
+    
+    def split_node(self, X, y):
+        # Copy sample_indices = self.sample_indices[start:end]
+        # lookup-table to the training data X, y
+        sample_indices = self.sample_indices[self.start : self.end]
+        
+        # -- K random select features --
+        # Features are sampled with replacement using the 
+        # modern version Fischer-Yates shuffle algorithm
 
+        feat_indices = np.arange(0, self.num_features)
+        improvement = 0.0
+        # i = n, instead of n - 1
+        i = self.num_features
+        while i > (self.num_features - self.max_num_features) or (improvement < EPSILON and i > 0):
+            j = 0
+            # uniform_int(low, high), low is inclusive and high is exclusive
+            if (i > 1):
+                j = self.random_state.randint(0, i)
+            i -= 1
+            feat_indices[i], feat_indices[j] = feat_indices[j], feat_indices[i]
+            feat_indice = feat_indices[i]
 
+            # split features
+            f_has_missing_value = 0
+            f_threshold = 0.0
+            f_partition_indice = 0
+            f_improvement = improvement
+
+            if self.split_policy == "best":
+                split_info = self._best_split(X, y, 
+                                          sample_indices, 
+                                          feat_indice, 
+                                          f_threshold, 
+                                          f_partition_indice, 
+                                          f_improvement, 
+                                          f_has_missing_value)
+                # print(result)
+                f_improvement = split_info["improvement"]
+                f_has_missing_value = split_info["has_missing_value"]
+                f_threshold = split_info["threshold"]
+                f_partition_indice = split_info["partition_indice"]
+            else:
+                raise NotImplementedError
+
+            if f_improvement > improvement:
+                # improvement = result["improvement"]
+                # has_missing_value = result["has_missing_value"]
+                # threshold = result["threshold"]
+                # partition_indice = result["partition_indice"]
+                self.sample_indices[self.start : self.end] = split_info["sample_indices"]
+
+                return {
+                    "feature_indice": feat_indice,
+                    "threshold": f_threshold, 
+                    "partition_indice": f_partition_indice, 
+                    "improvement": f_improvement, 
+                    "has_missing_value": f_has_missing_value,
+                }
+
+        
 
 
