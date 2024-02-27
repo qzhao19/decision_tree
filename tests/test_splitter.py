@@ -45,10 +45,8 @@ class TestSplitter(unittest.TestCase):
         self.splitter.init_node(self.y, 0, self.n_samples)
         weighted_histogram = self.splitter.criterion.get_weighted_histogram
         self.assertTrue((weighted_histogram == np.array([[3., 3., 3.]])).all())
-        
         split_info = self.splitter.split_node(self.X, self.y)
         print(split_info)
-
 
 
 if __name__ == '__main__':
