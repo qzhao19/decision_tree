@@ -31,8 +31,9 @@ class TestTree(unittest.TestCase):
     class_weight = np.ones((n_outputs * n_classes_max))
     n_samples = int(len(y) / n_outputs)
     sample_indices = np.arange(0, n_samples)
-    
+    n_features = 4
     criterion = Gini(n_outputs, n_samples, n_classes_max, n_classes, class_weight)
+    tree = Tree(n_outputs, n_classes_max, n_features)
 
     def test_add_node(self):
         # split node if it is not leaf node
@@ -45,7 +46,6 @@ class TestTree(unittest.TestCase):
         weighted_histogram = self.criterion.get_weighted_histogram
         self.criterion.compute_node_impurity()
         impurity = self.criterion.get_impurity_node
-
         node_indice = self.tree.add_node(
                 0, 
                 0, 
@@ -57,6 +57,7 @@ class TestTree(unittest.TestCase):
                 impurity, 
                 improvement,
             )
+        self.assertTrue((node_indice == 0))
 
 if __name__ == '__main__':
     unittest.main()
