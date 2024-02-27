@@ -16,7 +16,7 @@ class DecisionTreeClassifier(object):
     """
     def __init__(self, 
                  criterion_option, 
-                 split_policy, 
+                 split_policy = "best", 
                  class_weights = None,
                  max_depth = 4, 
                  min_samples_split = 2,
@@ -36,7 +36,7 @@ class DecisionTreeClassifier(object):
         self.random_state = random_state
 
     def fit(self, X, y):
-        seed = check_random_state(self.random_state)
+        random_state = check_random_state(self.random_state)
 
         num_samples, num_features = X.shape
         X, y = check_input_X_y(X, y)
@@ -106,14 +106,13 @@ class DecisionTreeClassifier(object):
         else:
             NotImplementedError
 
-
         splitter = Splitter(
             criterion, 
             num_samples,
             num_features,
             max_num_features,
             self.split_policy, 
-            seed,
+            random_state,
         )
 
         tree = Tree(num_outputs, num_classes_max, num_features)
@@ -130,3 +129,6 @@ class DecisionTreeClassifier(object):
 
         builder.build(X, y, num_samples)
 
+
+        for node in builder.tree.nodes:
+            print("left_child = %d, right_child = %d" %(node.left_child, node.right_child))
