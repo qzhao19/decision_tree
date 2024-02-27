@@ -6,6 +6,10 @@ class Tree(object):
     """The binary tree is represented as a number of parallel arrays. The i-th
     element of each array holds information about the node `i`. Node 0 is the
     tree's root. 
+    
+    For node data stored at index i, the two child nodes are at 
+    index (2 * i + 1) and (2 * i + 2); the parent node is (i - 1) // 2  
+    (where // indicates integer division).
     """
     def __init__(self, num_outputs, num_classes, num_features):
         self.num_outputs = num_outputs
@@ -38,8 +42,10 @@ class Tree(object):
                         improvement)
 
         self.nodes = np.append(self.nodes, cur_node)
+        
+        node_indice = self.node_count
+        self.node_count += 1
 
-        node_indice = self.node_count + 1
         if depth > 0:
             if is_left:
                 self.nodes[parent_indice].left_child = node_indice
