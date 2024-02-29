@@ -19,7 +19,7 @@ class Tree(object):
         self.max_depth = 0
         self.node_count = 0
 
-        self.nodes = np.array(Node)
+        self.nodes = []
 
     def add_node(self, 
                  depth, 
@@ -31,7 +31,7 @@ class Tree(object):
                  histogram, 
                  impurity, 
                  improvement):
-
+        
         # children IDs are set when the child nodes are added
         cur_node = Node(0, 0, 
                         feature_indice, 
@@ -40,8 +40,7 @@ class Tree(object):
                         histogram, 
                         impurity,
                         improvement)
-
-        self.nodes = np.append(self.nodes, cur_node)
+        self.nodes.append(cur_node)
         
         node_indice = self.node_count
         self.node_count += 1
