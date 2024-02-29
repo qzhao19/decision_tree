@@ -3,7 +3,6 @@ import numpy as np
 
 from ._utils import sort, check_random_state
 
-INFINITY = np.inf
 EPSILON = np.finfo('double').eps
 
 
@@ -156,7 +155,7 @@ class Splitter(object):
             if missing_value_indice > 0:
                 raise NotImplementedError
             
-            return split_info
+        return split_info
                 
     def _random_split(self):
         pass
@@ -174,7 +173,7 @@ class Splitter(object):
         improvement = 0.0
         # i = n, instead of n - 1
         i = self.num_features
-        while i > (self.num_features - self.max_num_features) or (improvement < EPSILON and i > 0):
+        while (i > (self.num_features - self.max_num_features) or (improvement < EPSILON and i > 0)):
             j = 0
             # uniform_int(low, high), low is inclusive and high is exclusive
             if (i > 1):
@@ -206,10 +205,6 @@ class Splitter(object):
                 raise NotImplementedError
 
             if f_improvement > improvement:
-                # improvement = result["improvement"]
-                # has_missing_value = result["has_missing_value"]
-                # threshold = result["threshold"]
-                # partition_indice = result["partition_indice"]
                 self.sample_indices[self.start : self.end] = split_info["sample_indices"]
 
                 return {
