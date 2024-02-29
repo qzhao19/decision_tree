@@ -47,9 +47,6 @@ class DepthFirstTreeBuilder(object):
             # Pop current node information from the stack
             node_info = node_info_stk.pop()
 
-            # compute the number of samples in the current node
-            num_samples_node = node_info.end - node_info.start
-
             # calculate number of samples per class histogram for all outputs
             # and impurity for the current node
             self.splitter.init_node(y, node_info.start, node_info.end)
@@ -57,24 +54,25 @@ class DepthFirstTreeBuilder(object):
             impurity = self.splitter.criterion.get_impurity_node
             partition_indice = 0
 
+            # compute the number of samples in the current node
+            num_samples_node = node_info.end - node_info.start
+
             # stop criterion is met node becomes a leaf node
-            is_leaf = (node_info.depth >= self.max_depth or 
+            is_leaf = (node_info.depth >= self.max_depth or
                        num_samples_node < self.min_samples_split or 
                        num_samples_node < 2 * self.min_samples_leaf or 
-                       num_samples_node < 2 * self.min_weight_leaf)
+                       num_samples_node < 2 * self.min_weight_leaf or 
+                       impurity <= EPSILON
+                    )
             
-            is_leaf = is_leaf or impurity <= EPSILON
-
             # split node if it is not leaf node
             feature_indice = 0
             has_missing_value = -1  # default: no missing value
-            threshold = None
+            threshold = 0.0
             improvement = 0.0
 
             if not is_leaf:
                 split_info = self.splitter.split_node(X, y)
-
-                # print(split_info)
                 feature_indice = split_info["feature_indice"]
                 has_missing_value = split_info["has_missing_value"]
                 threshold = split_info["threshold"]
@@ -83,6 +81,9 @@ class DepthFirstTreeBuilder(object):
 
                 if split_info["improvement"] <= EPSILON:
                     is_leaf = True
+
+            # print()
+            # print("is_leaf = %s, threshold: %f" %(str(is_leaf), threshold))
 
             node_indice = self.tree.add_node(
                 node_info.depth, 
