@@ -37,7 +37,6 @@ class DepthFirstTreeBuilder(object):
 
 
     def build(self, X, y, num_samples):
-        
         # node information stack
         # node_info_stk = [start, end, depth, parent_indice, is_left]
         node_info_stk = []
@@ -51,7 +50,7 @@ class DepthFirstTreeBuilder(object):
             # and impurity for the current node
             self.splitter.init_node(y, node_info.start, node_info.end)
             histogram = self.splitter.criterion.get_weighted_histogram
-            impurity = self.splitter.criterion.get_impurity_node
+            impurity = self.splitter.criterion.get_node_impurity
             partition_indice = 0
 
             # compute the number of samples in the current node
@@ -82,9 +81,7 @@ class DepthFirstTreeBuilder(object):
                 if split_info["improvement"] <= EPSILON:
                     is_leaf = True
 
-            # print()
-            # print("is_leaf = %s, threshold: %f" %(str(is_leaf), threshold))
-
+            # add node to decision tree
             node_indice = self.tree.add_node(
                 node_info.depth, 
                 node_info.parent_indice, 
