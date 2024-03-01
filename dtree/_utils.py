@@ -31,6 +31,7 @@ def check_random_state(seed):
     :class:`numpy:numpy.random.RandomState`
         The random state object based on `seed` parameter.
 
+    Source: https://github.com/scikit-learn/scikit-learn/blob/6bb2762b0b8c12b2e2578ef528ea7ea30580f9fa/sklearn/utils/validation.py#L1375
     """
     if seed is None or seed is np.random:
         return np.random.mtrand._rand
