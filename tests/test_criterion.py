@@ -40,36 +40,36 @@ class TestCriterionGini(unittest.TestCase):
 
     def test_compute_node_impurity(self):
         self.criterion.compute_node_impurity()
-        impurity_node = self.criterion.get_impurity_node
+        impurity_node = self.criterion.get_node_impurity
         self.assertTrue((np.round(impurity_node, decimals=6) == 0.666667))
 
-    def test_init_threshold_histogram(self):
-        self.criterion.init_threshold_histogram()
-        weighted_histogram_left = self.criterion.weighted_histogram_left
-        weighted_histogram_right = self.criterion.weighted_histogram_right
-        weighted_num_samples_left = self.criterion.weighted_num_samples_left
-        weighted_num_samples_right = self.criterion.weighted_num_samples_right
+    def test_init_children_histogram(self):
+        self.criterion.init_children_histogram()
+        weighted_histogram_left = self.criterion.left_weighted_histogram
+        weighted_histogram_right = self.criterion.right_weighted_histogram
+        weighted_num_samples_left = self.criterion.left_weighted_num_samples
+        weighted_num_samples_right = self.criterion.right_weighted_num_samples
 
         self.assertTrue((weighted_histogram_left == np.array([[0., 0., 0.]])).all())
         self.assertTrue((weighted_histogram_right == np.array([[3., 3., 3.]])).all())
         self.assertTrue((weighted_num_samples_left == np.array([0.])).all())
         self.assertTrue((weighted_num_samples_right == np.array([9.])).all())
 
-    def test_update_threshold_histogram(self):
-        self.criterion.update_threshold_histogram(self.y, self.sample_indices, 3)
-        weighted_histogram_left = self.criterion.weighted_histogram_left
-        weighted_histogram_right = self.criterion.weighted_histogram_right
-        weighted_num_samples_left = self.criterion.weighted_num_samples_left
-        weighted_num_samples_right = self.criterion.weighted_num_samples_right
+    def test_update_children_histogram(self):
+        self.criterion.update_children_histogram(self.y, self.sample_indices, 3)
+        weighted_histogram_left = self.criterion.left_weighted_histogram
+        weighted_histogram_right = self.criterion.right_weighted_histogram
+        weighted_num_samples_left = self.criterion.left_weighted_num_samples
+        weighted_num_samples_right = self.criterion.right_weighted_num_samples
 
         self.assertTrue((weighted_histogram_left == np.array([[3., 0., 0.]])).all())
         self.assertTrue((weighted_histogram_right == np.array([[0., 3., 3.]])).all())
         self.assertTrue((weighted_num_samples_left == np.array([3.])).all())
         self.assertTrue((weighted_num_samples_right == np.array([6.])).all())
 
-    def test_get_impurity_node(self):
-        impurity_node = self.criterion.get_impurity_node
-        self.assertTrue((np.round(impurity_node, decimals=6) == 0.666667))
+    def test_get_node_impurity(self):
+        impurity = self.criterion.get_node_impurity
+        self.assertTrue((np.round(impurity, decimals=6) == 0.666667))
 
 if __name__ == '__main__':
     unittest.main()
