@@ -88,7 +88,7 @@ class Splitter(object):
         if feat_min + EPSILON < feat_max:
             if missing_value_indice == 0:
                 # init class histogram 
-                self.criterion.init_threshold_histogram()
+                self.criterion.init_children_histogram()
             elif missing_value_indice > 0:
                 raise NotImplementedError
 
@@ -118,10 +118,10 @@ class Splitter(object):
                 next_indice += 1
 
                 # update class histograms from current indice to the new indice
-                self.criterion.update_threshold_histogram(y, sample_indices, next_indice)
+                self.criterion.update_children_histogram(y, sample_indices, next_indice)
 
                 # compute impurity for all outputs of samples for left child and right child
-                self.criterion.compute_threshold_impurity()
+                self.criterion.compute_children_impurity()
 
                 # compute impurity improvement
                 threshold_improvement = 0.0
@@ -140,7 +140,7 @@ class Splitter(object):
                     max_threshold_indice = self.start + next_indice
 
                 # if right node impurity is 0.0 stop
-                if self.criterion.get_impurity_right < EPSILON:
+                if self.criterion.get_right_impurity < EPSILON:
                     break
 
                 indice = next_indice
