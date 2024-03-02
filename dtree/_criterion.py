@@ -13,6 +13,64 @@ class Criterion(object):
         self.num_classes_list = num_classes_list
         self.class_weights = class_weights
 
+        # impurity of in the current node
+        self.node_impurity = np.zeros(num_outputs, dtype=np.double)
+        # impurity of in the left node with values smaller than threshold
+        self.left_impurity = np.zeros(num_outputs, dtype=np.double)
+        # impurity of in the right node with values bigger that threshold
+        self.right_impurity = np.zeros(num_outputs, dtype=np.double)
+
+        # weighted number of samples in the node, left child and right child
+        self.node_weighted_num_samples = np.zeros(num_outputs)
+        self.left_weighted_num_samples = np.zeros(num_outputs)
+        self.right_weighted_num_samples = np.zeros(num_outputs)
+
+        # weighted histogram in the node
+        self.node_weighted_histogram = np.zeros((num_outputs, num_classes_max), dtype=np.double)
+        # weighted histogram in left node with values smaller than threshold
+        self.left_weighted_histogram = np.zeros((num_outputs, num_classes_max), dtype=np.double)
+        # weighted histogram in right node with values bigger than threshold
+        self.right_weighted_histogram = np.zeros((num_outputs, num_classes_max), dtype=np.double)
+
+        self.threshold_indice = 0
+
+    @property
+    def get_node_impurity(self):
+        return np.sum(self.node_impurity) / self.num_outputs
+
+    @property
+    def get_left_impurity(self):
+        return np.sum(self.left_impurity) / self.num_outputs
+    
+    @property
+    def get_right_impurity(self):
+        return np.sum(self.right_impurity) / self.num_outputs
+    
+    # get the weighted histogram for the current node
+    @property
+    def get_weighted_histogram(self):
+        return self.node_weighted_histogram
+
+    def compute_impurity_improvement(self):
+        """This method computes the improvement in impurity when a split occurs.
+        The weighted impurity improvement equation is the following:
+
+            N_t / N * (impurity - N_t_R / N_t * right_impurity
+                                - N_t_L / N_t * left_impurity)
+        where N is the total number of samples, N_t is the number of samples
+        at the current node, N_t_L is the number of samples in the left child,
+        and N_t_R is the number of samples in the right child
+        """
+        impurity_improvement = np.zeros(self.num_outputs)
+        # each output
+        for o in range(self.num_outputs):
+            impurity_improvement[o] += \
+                (self.node_weighted_num_samples[o] / self.num_samples) * (self.node_impurity[o] - \
+                    (self.left_weighted_num_samples[o] / self.node_weighted_num_samples[o]) * self.left_impurity[o] - \
+                        (self.right_weighted_num_samples[o] / self.node_weighted_num_samples[o]) * self.right_impurity[o])
+
+        return np.sum(impurity_improvement) / self.num_outputs
+
 
 class Gini(Criterion):
     def __init__(self, 
@@ -27,48 +85,7 @@ class Gini(Criterion):
                          num_classes_list, 
                          class_weights)
         
-        # impurity of in the current node
-        self.impurity_node = np.zeros(num_outputs)
-        # impurity of in the left node with values smaller than threshold
-        self.impurity_left = np.zeros(num_outputs)
-        # impurity of in the right node with values bigger that threshold
-        self.impurity_right = np.zeros(num_outputs)
-
-        # weighted number of samples in the node, left child and right child
-        self.weighted_num_samples_node = np.zeros(num_outputs)
-        self.weighted_num_samples_left = np.zeros(num_outputs)
-        self.weighted_num_samples_right = np.zeros(num_outputs)
-
-
-        # weighted histogram in the node
-        self.weighted_histogram_node = np.zeros((num_outputs, num_classes_max))
-        # weighted histogram in left node with values smaller than threshold
-        self.weighted_histogram_left = np.zeros((num_outputs, num_classes_max))
-        # weighted histogram in right node with values bigger than threshold
-        self.weighted_histogram_right = np.zeros((num_outputs, num_classes_max))
-
-        self.threshold_indice = 0
-
-    def compute_node_histogram(self, y, sample_indices, start, end):
-        """compute weighted class histograms for current node.
-        """
-        # each output
-        for o in range(self.num_outputs):
-
-            # Calculate class histogram
-            # 1d array to hold the class histogram
-            histogram = np.zeros(self.num_classes_max)
-
-            for i in range(start, end):
-                histogram[y[sample_indices[i] * self.num_outputs + o]] += 1
-
-            weighted_count = 0
-            for c in range(self.num_classes_list[o]):
-                weighted_count = self.class_weights[o * self.num_classes_max + c] * histogram[c]
-                self.weighted_histogram_node[o, c] = weighted_count
-                self.weighted_num_samples_node[o] += weighted_count
-            
-
+    
     def _compute_impurity(self, histogram):
         """impurity of a weighted class histogram using the Gini criterion.
         """
@@ -82,24 +99,34 @@ class Gini(Criterion):
         impurity = (1.0 - sum_count_squared / (sum_count*sum_count)) if (sum_count > 0.0) else 0.0
         return impurity
 
+    def compute_node_histogram(self, y, sample_indices, start, end):
+        """compute weighted class histograms for current node.
+        """
+        # each output
+        for o in range(self.num_outputs):
+            # Calculate class histogram
+            # 1d array to hold the class histogram
+            histogram = np.zeros(self.num_classes_max)
 
+            for i in range(start, end):
+                histogram[y[sample_indices[i] * self.num_outputs + o]] += 1.0
+
+            weighted_count = 0.0
+            self.node_weighted_num_samples[0] = 0.0
+            for c in range(self.num_classes_list[o]):
+                weighted_count = self.class_weights[o * self.num_classes_max + c] * histogram[c]
+                self.node_weighted_histogram[o, c] = weighted_count
+                self.node_weighted_num_samples[o] += weighted_count
+            
     def compute_node_impurity(self):
         """Evaluate the impurity of the current node.
         Evaluate the Gini criterion as impurity of the current node,
         """
         # each output
         for o in range(self.num_outputs):
-            self.impurity_node[o] = self._compute_impurity(self.weighted_histogram_node[o])
+            self.node_impurity[o] = self._compute_impurity(self.node_weighted_histogram[o])
 
-
-    def compute_threshold_impurity(self):
-        # each output
-        for o in range(self.num_outputs):
-            self.impurity_left[o] = self._compute_impurity(self.weighted_histogram_left[o])
-            self.impurity_right[o] = self._compute_impurity(self.weighted_histogram_right[o])
-
-
-    def init_threshold_histogram(self):
+    def init_children_histogram(self):
         """Initialize class histograms for all outputs 
         for using a threshold on samples with values,
         """
@@ -109,92 +136,48 @@ class Gini(Criterion):
             # value of left child is 0, value of right child is current node value
             
             for c in range(self.num_classes_list[o]):
-                self.weighted_histogram_left[o, c] = 0.0
-                self.weighted_histogram_right[o, c] = self.weighted_histogram_node[o, c]
+                self.left_weighted_histogram[o, c] = 0.0
+                self.right_weighted_histogram[o, c] = self.node_weighted_histogram[o, c]
             
-            self.weighted_num_samples_left[o] = 0
-            self.weighted_num_samples_right[o] = self.weighted_num_samples_node[o]
+            self.left_weighted_num_samples[o] = 0.0
+            self.right_weighted_num_samples[o] = self.node_weighted_num_samples[o]
         
         self.threshold_indice = 0
+    
+    def compute_children_impurity(self):
+        # each output
+        for o in range(self.num_outputs):
+            self.left_impurity[o] = self._compute_impurity(self.left_weighted_histogram[o])
+            self.right_impurity[o] = self._compute_impurity(self.right_weighted_histogram[o])
 
-
-    def update_threshold_histogram(self, y, sample_indices, new_indice):
-        """
+    def update_children_histogram(self, y, sample_indices, new_threshold_indice):
+        """update class histograms of child nodes with new threshold
         """
         # each output
         for o in range(self.num_outputs):
             histogram = np.zeros(self.num_classes_max)
 
-            for i in range(self.threshold_indice, new_indice):
-                histogram[y[sample_indices[i] * self.num_outputs + o]] += 1
+            for i in range(self.threshold_indice, new_threshold_indice):
+                histogram[y[sample_indices[i] * self.num_outputs + o]] += 1.0
 
-            weighted_count = 0
+            weighted_count = 0.0
             for c in range(self.num_classes_list[o]):
                 weighted_count = self.class_weights[o * self.num_classes_max + c] * histogram[c]
 
                 # left child node
                 # add class histogram for samples[idx:new_idx]
-                self.weighted_histogram_left[o, c] += weighted_count
-                self.weighted_num_samples_left[o] += weighted_count
+                self.left_weighted_histogram[o, c] += weighted_count
+                self.left_weighted_num_samples[o] += weighted_count
 
                 # right child node
-                self.weighted_histogram_right[o, c] -= weighted_count
-                self.weighted_num_samples_right[o] -= weighted_count
+                self.right_weighted_histogram[o, c] -= weighted_count
+                self.right_weighted_num_samples[o] -= weighted_count
 
-        self.threshold_indice = new_indice
-
-    
-    def compute_impurity_improvement(self):
-        """This method computes the improvement in impurity when a split occurs.
-        The weighted impurity improvement equation is the following:
-
-            N_t / N * (impurity - N_t_R / N_t * right_impurity
-                                - N_t_L / N_t * left_impurity)
-
-        """
-        impurity_improvement = np.zeros(self.num_outputs)
-        # each output
-        for o in range(self.num_outputs):
-            impurity_improvement[o] += \
-                (self.weighted_num_samples_node[o] / self.num_samples) * (self.impurity_node[o] - \
-                    (self.weighted_num_samples_left[o] / self.weighted_num_samples_node[o]) * self.impurity_left[o] - \
-                        (self.weighted_num_samples_right[o] / self.weighted_num_samples_node[o]) * self.impurity_right[o])
-
-        return np.sum(impurity_improvement)
-
-    @property
-    def get_impurity_node(self):
-        return np.sum(self.impurity_node) / self.num_outputs
-
-    @property
-    def get_impurity_left(self):
-        return np.sum(self.impurity_left) / self.num_outputs
-    
-    @property
-    def get_impurity_right(self):
-        return np.sum(self.impurity_right) / self.num_outputs
-    
-    # get the weighted histogram for the current node
-    @property
-    def get_weighted_histogram(self):
-        return self.weighted_histogram_node
-
+        self.threshold_indice = new_threshold_indice
 
     
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
 
 
 
