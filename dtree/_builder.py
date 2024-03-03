@@ -67,7 +67,7 @@ class DepthFirstTreeBuilder(object):
             # split node if it is not leaf node
             feature_indice = 0
             has_missing_value = -1  # default: no missing value
-            threshold = 0.0
+            threshold = np.nan
             improvement = 0.0
 
             if not is_leaf:
