@@ -96,39 +96,34 @@ class DecisionTreeClassifier(object):
         # print(y.shape)
 
         if self.criterion_option == "gini":
-            criterion = Gini(
-                num_outputs, 
-                num_samples, 
-                num_classes_max, 
-                num_classes_list,
-                class_weights
-            )
+            criterion = Gini(num_outputs, 
+                             num_samples, 
+                             num_classes_max, 
+                             num_classes_list,
+                             class_weights)
         else:
             NotImplementedError
 
-        splitter = Splitter(
-            criterion, 
-            num_samples,
-            num_features,
-            max_num_features,
-            self.split_policy, 
-            random_state,
-        )
+        splitter = Splitter(criterion, 
+                            num_samples,
+                            num_features,
+                            max_num_features,
+                            self.split_policy, 
+                            random_state)
 
-        tree = Tree(num_outputs, num_classes_max, num_features)
+        tree = Tree(num_outputs, 
+                    num_classes_max, 
+                    num_features)
 
-        builder = DepthFirstTreeBuilder(
-            tree,
-            splitter,
-            min_samples_split,
-            min_samples_leaf,
-            min_weight_leaf,
-            max_depth,
-            class_weights
-        )
+        builder = DepthFirstTreeBuilder(tree,
+                                        splitter,
+                                        min_samples_split,
+                                        min_samples_leaf,
+                                        min_weight_leaf,
+                                        max_depth,
+                                        class_weights)
 
         builder.build(X, y, num_samples)
-
 
         for node in builder.tree.nodes:
             print("left_child = %d, right_child = %d" %(node.left_child, node.right_child))
