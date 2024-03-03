@@ -60,6 +60,10 @@ def check_sample_weight(sample_weight, num_samples, dtype=None):
 
 
 def check_input_X_y(X, y):
+    if (not isinstance(X, np.ndarray)) or (not isinstance(y, np.ndarray)):
+        raise ValueError("input should be in np.ndarray format, got %s"
+                         % type(X))
+    
     if len(X) != len(y):
         raise ValueError("X and y must be the same size.")
     
