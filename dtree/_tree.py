@@ -2,6 +2,12 @@ import numpy as np
 
 from ._node import Node
 
+class IndiceInfo(object):
+    def __init__(self, indice, weight):
+        self.indice = indice
+        self.weight = weight
+
+
 class Tree(object):
     """The binary tree is represented as a number of parallel arrays. The i-th
     element of each array holds information about the node `i`. Node 0 is the
@@ -59,7 +65,7 @@ class Tree(object):
     def compute_feature_importances(self):
         """compute the importances of each feature 
         """
-        importances = np.zeros(self.num_features)
+        importances = np.zeros(self.num_features, dtype=np.double)
 
         if (self.node_count == 0):
             return None
@@ -81,3 +87,21 @@ class Tree(object):
                 importances[i] = importances[i] / norm_coeff
         
         return importances
+    
+    def predict_proba(self, X):
+        """predict classes probabilities
+        """
+        num_samples = X.shape[0]
+        y_proba = np.zeros((num_samples * self.num_outputs * self.num_classes), dtype=np.double)
+
+        for i in range(num_samples):
+            node_idx_info_stk = []
+            leaf_idx_info_stk = []
+
+            # start from the root to leaf node
+            node_idx_info_stk.append(IndiceInfo(0, 1.0))
+
+            while node_idx_info_stk:
+                node_idx_info1 = node_idx_info_stk.pop()
+                
+
