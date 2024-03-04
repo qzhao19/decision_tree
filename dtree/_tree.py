@@ -103,5 +103,10 @@ class Tree(object):
 
             while node_idx_info_stk:
                 node_idx_info1 = node_idx_info_stk.pop()
-                
+
+                # follow path until leaf node
+                # 
+                while self.nodes[node_idx_info1.indice].left_child > 0:
+
+
 
