@@ -37,7 +37,7 @@ class TestSplitter(unittest.TestCase):
     splitter = Splitter(criterion, 
                         n_samples,
                         n_features,
-                        n_classes_max,
+                        n_features,
                         split_policy = "best", 
                         random_state = None)
 
