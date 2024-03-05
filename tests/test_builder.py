@@ -38,9 +38,9 @@ class TestBuilder(unittest.TestCase):
     sample_indices = np.arange(0, n_samples)
     n_features = 4
 
-    tree = Tree(n_outputs, n_classes_max, n_features)
+    tree = Tree(n_outputs, n_features, n_classes_max, n_classes)
     criterion = Gini(n_outputs, n_samples, n_classes_max, n_classes, class_weight)
-    splitter = Splitter(criterion, n_samples, n_features, n_classes_max, split_policy = "best", random_state = None)
+    splitter = Splitter(criterion, n_samples, n_features, n_features, split_policy = "best", random_state = None)
 
     max_depth = 4
     min_samples_split = 2
