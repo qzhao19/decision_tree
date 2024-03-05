@@ -4,12 +4,12 @@ class Criterion(object):
     def __init__(self, 
                  num_outputs, 
                  num_samples, 
-                 num_classes_max, 
+                 max_num_classes, 
                  num_classes_list,
                  class_weights):
         self.num_outputs = num_outputs
         self.num_samples = num_samples
-        self.num_classes_max = num_classes_max
+        self.max_num_classes = max_num_classes
         self.num_classes_list = num_classes_list
         self.class_weights = class_weights
 
@@ -26,11 +26,11 @@ class Criterion(object):
         self.right_weighted_num_samples = np.zeros(num_outputs)
 
         # weighted histogram in the node
-        self.node_weighted_histogram = np.zeros((num_outputs, num_classes_max), dtype=np.double)
+        self.node_weighted_histogram = np.zeros((num_outputs, max_num_classes), dtype=np.double)
         # weighted histogram in left node with values smaller than threshold
-        self.left_weighted_histogram = np.zeros((num_outputs, num_classes_max), dtype=np.double)
+        self.left_weighted_histogram = np.zeros((num_outputs, max_num_classes), dtype=np.double)
         # weighted histogram in right node with values bigger than threshold
-        self.right_weighted_histogram = np.zeros((num_outputs, num_classes_max), dtype=np.double)
+        self.right_weighted_histogram = np.zeros((num_outputs, max_num_classes), dtype=np.double)
 
         self.threshold_indice = 0
 
@@ -76,12 +76,12 @@ class Gini(Criterion):
     def __init__(self, 
                  num_outputs, 
                  num_samples, 
-                 num_classes_max,
+                 max_num_classes,
                  num_classes_list,                 
                  class_weights):
         super().__init__(num_outputs, 
                          num_samples, 
-                         num_classes_max, 
+                         max_num_classes, 
                          num_classes_list, 
                          class_weights)
         
@@ -106,7 +106,7 @@ class Gini(Criterion):
         for o in range(self.num_outputs):
             # Calculate class histogram
             # 1d array to hold the class histogram
-            histogram = np.zeros(self.num_classes_max)
+            histogram = np.zeros(self.max_num_classes)
 
             for i in range(start, end):
                 histogram[y[sample_indices[i] * self.num_outputs + o]] += 1.0
@@ -114,7 +114,7 @@ class Gini(Criterion):
             weighted_count = 0.0
             self.node_weighted_num_samples[0] = 0.0
             for c in range(self.num_classes_list[o]):
-                weighted_count = self.class_weights[o * self.num_classes_max + c] * histogram[c]
+                weighted_count = self.class_weights[o * self.max_num_classes + c] * histogram[c]
                 self.node_weighted_histogram[o, c] = weighted_count
                 self.node_weighted_num_samples[o] += weighted_count
             
@@ -155,14 +155,14 @@ class Gini(Criterion):
         """
         # each output
         for o in range(self.num_outputs):
-            histogram = np.zeros(self.num_classes_max)
+            histogram = np.zeros(self.max_num_classes)
 
             for i in range(self.threshold_indice, new_threshold_indice):
                 histogram[y[sample_indices[i] * self.num_outputs + o]] += 1.0
 
             weighted_count = 0.0
             for c in range(self.num_classes_list[o]):
-                weighted_count = self.class_weights[o * self.num_classes_max + c] * histogram[c]
+                weighted_count = self.class_weights[o * self.max_num_classes + c] * histogram[c]
 
                 # left child node
                 # add class histogram for samples[idx:new_idx]
