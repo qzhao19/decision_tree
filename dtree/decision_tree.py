@@ -1,5 +1,6 @@
 import numbers
 import numpy as np
+import six
 
 from ._builder import DepthFirstTreeBuilder
 from ._criterion import Gini
@@ -15,7 +16,7 @@ class DecisionTreeClassifier(object):
     
     """
     def __init__(self, 
-                 criterion_option, 
+                 criterion_option = "gini", 
                  split_policy = "best", 
                  class_weights = None,
                  max_depth = 4, 
@@ -52,8 +53,8 @@ class DecisionTreeClassifier(object):
             classes_k, _ = np.unique(y_encoded[:, k], return_inverse=True)
             classes.append(classes_k)
             num_classes_list.append(classes_k.shape[0])
-        num_classes_max = np.max(num_classes_list)
-
+        self.max_num_classes = np.max(num_classes_list)
+        
         # check max_depth
         max_depth = np.iinfo(np.int32).max if self.max_depth is None else self.max_depth
 
@@ -75,13 +76,18 @@ class DecisionTreeClassifier(object):
         # check max_num_features
         if self.max_num_features is None:
             max_num_features = num_features
-        elif isinstance(self.max_features, numbers.Integral):
-            max_num_features = self.max_features
-        else:
+        elif isinstance(self.max_num_features, numbers.Integral):
+            max_num_features = self.max_num_features
+        elif isinstance(self.max_num_features, float):
             if self.max_num_features > 0.0:
                 max_num_features = max(1, int(self.max_num_features * num_features))
             else:
                 max_num_features = 0
+        elif isinstance(self.max_num_features, six.string_types):
+            if self.max_num_features == "sqrt":
+                max_num_features = np.sqrt(num_features)
+            elif self.max_num_features == "log2":
+                max_num_features = np.log2(num_features)
 
         # check class weights
         class_weights = check_sample_weight(self.class_weights, num_samples)
@@ -98,7 +104,7 @@ class DecisionTreeClassifier(object):
         if self.criterion_option == "gini":
             criterion = Gini(num_outputs, 
                              num_samples, 
-                             num_classes_max, 
+                             self.max_num_classes, 
                              num_classes_list,
                              class_weights)
         else:
@@ -111,11 +117,12 @@ class DecisionTreeClassifier(object):
                             self.split_policy, 
                             random_state)
 
-        tree = Tree(num_outputs, 
-                    num_classes_max, 
-                    num_features)
+        self.tree = Tree(num_outputs,  
+                        num_features,
+                        self.max_num_classes,
+                        num_classes_list)
 
-        builder = DepthFirstTreeBuilder(tree,
+        builder = DepthFirstTreeBuilder(self.tree,
                                         splitter,
                                         min_samples_split,
                                         min_samples_leaf,
@@ -126,4 +133,15 @@ class DecisionTreeClassifier(object):
         builder.build(X, y, num_samples)
 
         for node in builder.tree.nodes:
-            print("left_child = %d, right_child = %d" %(node.left_child, node.right_child))
+            print("left_child = %d, right_child = %d, threshold = %f, improvement = %f, f_indice = %d" 
+                  %(node.left_child, node.right_child, node.threshold, node.improvement, node.feature_indice))
+
+    def predict_proba(self, X):
+        """predict class probabilities of the input samples X
+        """
+        num_samples, num_features = X.shape
+        X = X.reshape(-1)
+
+        y_proba = self.tree.predict_proba(X, num_samples)
+
+        return y_proba.reshape((num_samples, self.max_num_classes))
