@@ -127,6 +127,7 @@ class Splitter(object):
                 threshold_improvement = 0.0
                 if missing_value_indice == 0:
                     threshold_improvement = self.criterion.compute_impurity_improvement()
+                    print("threshold_improvement = %f" % threshold_improvement)
                 elif missing_value_indice > 0:
                     NotImplementedError
                 
@@ -138,6 +139,8 @@ class Splitter(object):
                     max_improvement = threshold_improvement
                     max_threshold = (X_feat[indice] + X_feat[next_indice]) / 2.0
                     max_threshold_indice = self.start + next_indice
+                    print("current position = %d, value = %f, next position = %d, value = %f" 
+                          % (indice, X_feat[indice], next_indice, X_feat[next_indice]))
 
                 # if right node impurity is 0.0 stop
                 if self.criterion.get_right_impurity < EPSILON:
@@ -169,15 +172,23 @@ class Splitter(object):
         # Features are sampled with replacement using the 
         # modern version Fischer-Yates shuffle algorithm
 
+        split_info = {}
+
         feat_indices = np.arange(0, self.num_features)
         improvement = 0.0
         # i = n, instead of n - 1
         i = self.num_features
-        while (i > (self.num_features - self.max_num_features) or (improvement < EPSILON and i > 0)):
+        # print("current indice1 i = %s" % str(i))
+        increment = 0
+        while ((i > (self.num_features - self.max_num_features)) or (improvement < EPSILON and i > 0)):
+            increment +=1
+            print("Increment = %s" % increment)
+            print("current indice i = %s" % str(i))
             j = 0
             # uniform_int(low, high), low is inclusive and high is exclusive
             if (i > 1):
                 j = self.random_state.randint(0, i)
+            print("random indice j = %d" % j)
             i -= 1
             feat_indices[i], feat_indices[j] = feat_indices[j], feat_indices[i]
             feat_indice = feat_indices[i]
@@ -186,7 +197,7 @@ class Splitter(object):
             f_has_missing_value = 0
             f_threshold = 0.0
             f_partition_indice = 0
-            f_improvement = improvement
+            f_improvement = 0.0
 
             if self.split_policy == "best":
                 split_info = self._best_split(X, y, 
@@ -196,7 +207,13 @@ class Splitter(object):
                                           f_partition_indice, 
                                           f_improvement, 
                                           f_has_missing_value)
-                # print(result)
+                # print(split_info)
+                if split_info:
+                    print("has split info")
+                else:
+                    print("has no split info: ")
+                    print(split_info)
+
                 f_improvement = split_info["improvement"]
                 f_has_missing_value = split_info["has_missing_value"]
                 f_threshold = split_info["threshold"]
@@ -207,14 +224,20 @@ class Splitter(object):
             if f_improvement > improvement:
                 self.sample_indices[self.start : self.end] = split_info["sample_indices"]
 
-                return {
-                    "feature_indice": feat_indice,
-                    "threshold": f_threshold, 
-                    "partition_indice": f_partition_indice, 
-                    "improvement": f_improvement, 
-                    "has_missing_value": f_has_missing_value,
-                }
-
+                split_info["feature_indice"] = feat_indice
+                split_info["threshold"] = f_threshold
+                split_info["partition_indice"] = f_partition_indice
+                split_info["improvement"] = f_improvement
+                split_info["has_missing_value"] = f_has_missing_value
+                # return {
+                #     "feature_indice": feat_indice,
+                #     "threshold": f_threshold, 
+                #     "partition_indice": f_partition_indice, 
+                #     "improvement": f_improvement, 
+                #     "has_missing_value": f_has_missing_value,
+                # }
+        
+        return split_info
         
 
 
