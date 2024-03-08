@@ -58,9 +58,9 @@ class DepthFirstTreeBuilder(object):
 
             # stop criterion is met node becomes a leaf node
             is_leaf = (node_info.depth >= self.max_depth or
-                       num_samples_node < self.min_samples_split or 
-                       num_samples_node < 2 * self.min_samples_leaf or 
-                       num_samples_node < 2 * self.min_weight_leaf or 
+                    #    num_samples_node < self.min_samples_split or 
+                    #    num_samples_node < 2 * self.min_samples_leaf or 
+                    #    num_samples_node < 2 * self.min_weight_leaf or 
                        impurity <= EPSILON
                     )
             
