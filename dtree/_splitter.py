@@ -45,14 +45,6 @@ class Splitter(object):
                     improvement, 
                     has_missing_value):
 
-        split_info = {
-            "sample_indices": sample_indices,
-            "threshold": threshold, 
-            "partition_indice": partition_indice, 
-            "improvement": improvement, 
-            "has_missing_value": has_missing_value,
-        }
-
         # Copy X_feat=X[sample_indices[start:end], feature_indice] training data X for the current node.
         num_samples = self.end - self.start
         X_feat = np.zeros(num_samples)
@@ -101,8 +93,8 @@ class Splitter(object):
             indice = missing_value_indice
             next_indice = missing_value_indice
 
-            max_improvement = 0.0
-            max_threshold = 0.0
+            max_improvement = improvement
+            max_threshold = threshold
             max_threshold_indice = missing_value_indice
 
             while next_indice < num_samples:
@@ -149,35 +141,24 @@ class Splitter(object):
                 indice = next_indice
 
             if missing_value_indice == 0:
-                split_info["sample_indices"] = sample_indices
-                split_info["threshold"] = max_threshold
-                split_info["partition_indice"] = max_threshold_indice
-                split_info["improvement"] = max_improvement
-                split_info["has_missing_value"] = -1
+                return sample_indices, max_threshold, max_threshold_indice, max_improvement, has_missing_value
 
             if missing_value_indice > 0:
                 raise NotImplementedError
             
-        return split_info
+        # return split_info
                 
     def _random_split(self):
         pass
     
-    def split_node(self, X, y, 
-                    feature_indice,
-                    threshold, 
-                    partition_indice, 
-                    improvement, 
-                    has_missing_value):
+    def split_node(self, X, y, split_node_info):
         # Copy sample_indices = self.sample_indices[start:end]
         # lookup-table to the training data X, y
-        sample_indices = self.sample_indices[self.start : self.end]
+        f_sample_indices = self.sample_indices[self.start : self.end]
         
         # -- K random select features --
         # Features are sampled with replacement using the 
         # modern version Fischer-Yates shuffle algorithm
-
-        split_info = {}
 
         feat_indices = np.arange(0, self.num_features)
         # improvement = 0.0
@@ -185,7 +166,7 @@ class Splitter(object):
         i = self.num_features
         # print("current indice1 i = %s" % str(i))
         increment = 0
-        while ((i > (self.num_features - self.max_num_features)) or (improvement < EPSILON and i > 0)):
+        while ((i > (self.num_features - self.max_num_features)) or (split_node_info["improvement"] < EPSILON and i > 0)):
             increment +=1
             print("Increment = %s" % increment)
             print("current indice i = %s" % str(i))
@@ -199,44 +180,34 @@ class Splitter(object):
             feat_indice = feat_indices[i]
 
             # split features
-            f_has_missing_value = 0
+            f_has_missing_value = -1
             f_threshold = 0.0
             f_partition_indice = 0
-            f_improvement = improvement
+            f_improvement = split_node_info["improvement"]
 
             if self.split_policy == "best":
-                split_info = self._best_split(X, y, 
+                sample_indices, threshold, partition_indice, improvement, has_missing_value = self._best_split(X, y, 
                                           sample_indices, 
                                           feat_indice, 
                                           f_threshold, 
                                           f_partition_indice, 
                                           f_improvement, 
                                           f_has_missing_value)
-                # print(split_info)
-                if split_info:
-                    print("has split info at splitter level:")
-                    print(split_info)
-                else:
-                    print("has no split info at splitter level")
-                    print(split_info)
 
-                f_improvement = split_info["improvement"]
-                f_has_missing_value = split_info["has_missing_value"]
-                f_threshold = split_info["threshold"]
-                f_partition_indice = split_info["partition_indice"]
+                f_improvement = improvement
+                f_has_missing_value = has_missing_value
+                f_threshold = threshold
+                f_partition_indice = partition_indice
             else:
                 raise NotImplementedError
 
             if f_improvement > improvement:
-                self.sample_indices[self.start : self.end] = split_info["sample_indices"]
+                self.sample_indices[self.start : self.end] = split_node_info["sample_indices"]
 
-                split_info["feature_indice"] = feat_indice
-                split_info["threshold"] = f_threshold
-                split_info["partition_indice"] = f_partition_indice
-                split_info["improvement"] = f_improvement
-                split_info["has_missing_value"] = f_has_missing_value
+                split_node_info["feature_indice"] = feat_indice
+                split_node_info["threshold"] = f_threshold
+                split_node_info["partition_indice"] = f_partition_indice
+                split_node_info["improvement"] = f_improvement
+                split_node_info["has_missing_value"] = f_has_missing_value
                 
-        return split_info
-        
-
 
