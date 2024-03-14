@@ -1,12 +1,12 @@
 import unittest
 import numpy as np
 
-from context import dtree
-from dtree._criterion import Gini
-from dtree._tree import Tree
-from dtree._builder import DepthFirstTreeBuilder
-from dtree._splitter import Splitter
-from dtree._utils import check_sample_weight
+from context import decision_tree
+from decision_tree._criterion import Gini
+from decision_tree._tree import Tree
+from decision_tree._builder import DepthFirstTreeBuilder
+from decision_tree._splitter import Splitter
+from decision_tree._utils import check_sample_weight
 
 
 class TestBuilder(unittest.TestCase):

@@ -1,9 +1,9 @@
 import unittest
 import numpy as np
 
-from context import dtree
-from dtree._criterion import Gini
-from dtree._tree import Tree
+from context import decision_tree
+from decision_tree._criterion import Gini
+from decision_tree._tree import Tree
 
 
 class TestTree(unittest.TestCase):

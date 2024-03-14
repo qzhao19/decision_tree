@@ -1,9 +1,9 @@
 import unittest
 import numpy as np
 
-from context import dtree
-from dtree._criterion import Gini
-from dtree._splitter import Splitter
+from context import decision_tree
+from decision_tree._criterion import Gini
+from decision_tree._splitter import Splitter
 
 class TestSplitter(unittest.TestCase):
     def calculate_n_classes(classes):

@@ -1,8 +1,8 @@
 import unittest
 import numpy as np
 
-from context import dtree
-from dtree._utils import sort
+from context import decision_tree
+from decision_tree._utils import sort
 
 class TestUtilsFunction(unittest.TestCase):
     def test_sort(self):

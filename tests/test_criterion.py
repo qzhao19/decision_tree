@@ -1,8 +1,8 @@
 import unittest
 import numpy as np
 
-from context import dtree
-from dtree._criterion import Gini
+from context import decision_tree
+from decision_tree._criterion import Gini
 
 
 class TestCriterionGini(unittest.TestCase):
