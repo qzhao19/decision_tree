@@ -1,7 +1,7 @@
 import numpy as np
 
 from sklearn import datasets
-from dtree.decision_tree import DecisionTreeClassifier
+from decision_tree.decision_tree_classifier import DecisionTreeClassifier
 
 
 def main():
